@@ -1,14 +1,40 @@
-﻿<dialog id='sheetPassword' class='sheet'>
-  <div class='sheet-handle'></div>
-  <div class='sheet-head'><h3>Cambiar contraseña</h3><button class='sheet-close' data-close>✕</button></div>
-  <form class='form' id='formPassword'>
-    <label>Contraseña actual<input name='current' type='password' placeholder='Inserta tu contraseña actual'></label>
-    <label>Nueva contraseña<input name='new' type='password' placeholder='Inserta tu contraseña nueva'></label>
-    <label>Confirmar nueva contraseña<input name='confirm' type='password' placeholder='Confirma tu contraseña nueva'></label>
-    <div class='row between'>
-      <button type='button' class='link-inline' data-open='#sheetForgot'>¿Necesitas ayuda?</button>
-      <button type='button' class='link-inline' data-open='#sheetForgot'>Olvidé mi contraseña</button>
+﻿<?php $csrf = htmlspecialchars(csrf_token(), ENT_QUOTES); ?>
+<dialog id="sheetPassword" class="sheet sheet--bottom" aria-labelledby="passTitle">
+  <form method="dialog" class="sheet__panel">
+    <div class="sheet__handle" aria-hidden="true"></div>
+
+    <header class="sheet__head">
+      <h2 id="passTitle" class="sheet__title">Cambiar contraseña</h2>
+      <button type="button" class="sheet__close" data-dialog-close aria-label="Cerrar">✕</button>
+    </header>
+
+    <div class="sheet__body">
+      <label class="field">
+        <span class="field__label">Contraseña actual</span>
+        <input class="field__input" type="password" name="old" placeholder="Insertar tu contraseña actual" required>
+      </label>
+      <label class="field">
+        <span class="field__label">Nueva contraseña</span>
+        <input class="field__input" type="password" name="new" placeholder="Insertar tu contraseña nueva" required>
+      </label>
+      <label class="field">
+        <span class="field__label">Confirmar nueva contraseña</span>
+        <input class="field__input" type="password" name="new2" placeholder="Confirmar contraseña" required>
+      </label>
+
+      <div class="sheet__row" style="display:flex;justify-content:space-between;gap:12px">
+        <button type="button" class="link" data-dialog-open="sheetForgot">¿Necesitas ayuda?</button>
+        <button type="button" class="link" data-dialog-open="sheetOTP">Olvidé mi contraseña</button>
+      </div>
+
+      <input type="hidden" name="csrf" value="<?=$csrf?>">
     </div>
-    <button class='btn btn-accent w-100' type='submit'>GUARDAR</button>
+
+    <footer class="sheet__foot">
+      <button class="btn btn--primary btn--xl" data-action="save-password">GUARDAR</button>
+    </footer>
   </form>
 </dialog>
+<!--
+  sheet_password.php
+  Hoja para cambiar la contraseña (desde perfil_editar.php)
