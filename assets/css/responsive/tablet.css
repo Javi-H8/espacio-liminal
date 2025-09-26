@@ -1,0 +1,6 @@
+﻿@media (min-width: 768px){
+  .container{padding:24px 24px 120px}
+  .topbar h1{font-size:18px}
+  .value{font-size:15px}.label{font-size:13px}
+  .container--page{max-width:960px;margin:0 auto}
+}

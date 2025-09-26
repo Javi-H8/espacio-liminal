@@ -1,0 +1,77 @@
+# ===========================================================================
+# Configuración Apache para Espacio Liminal (seguridad + rendimiento)
+# Tono: restrictivo pero sin romper el entorno local; CSP en Report-Only.
+# ===========================================================================
+
+DirectoryIndex index.php index.html
+
+# Evitar listado de directorios
+Options -Indexes
+
+# Asegurar que .webmanifest tenga el tipo correcto
+AddType application/manifest+json .webmanifest
+
+# Habilitar compresión para text/css/js/json/svg/etc.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css
+  AddOutputFilterByType DEFLATE text/javascript application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/xml image/svg+xml
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Seguridad básica de cabeceras
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "DENY"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+  # Permitir que el service worker extienda su scope a la raíz
+  Header set Service-Worker-Allowed "/"
+
+  # CSP en Report-Only mientras se valida (no bloquea, solo registra violaciones).
+  # Cuando todo esté ok, cambia "Content-Security-Policy-Report-Only" por
+  # "Content-Security-Policy" para aplicarlo en serio.
+  Header set Content-Security-Policy-Report-Only "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self' data:; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'"
+
+  # Tipos estáticos: 7 días + immutable (se usa BUILD=?v=... en los links)
+  <FilesMatch "\.(css|js|png|jpg|jpeg|svg|webp|ico|woff2?)$">
+    Header set Cache-Control "public, max-age=604800, immutable"
+  </FilesMatch>
+
+  # HTML/PHP dinámico: no cachear en cliente (lo gobierna el servidor/app)
+  <FilesMatch "\.(html|php)$">
+    Header set Cache-Control "no-store, must-revalidate"
+  </FilesMatch>
+
+  # Asegurar el scope del SW en el propio fichero (por si se sirve directo)
+  <FilesMatch "service-worker\.js$">
+    Header set Service-Worker-Allowed "/"
+  </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# (Opcional) Forzar HTTPS en producción
+# Descomentar SOLO si el hosting ya tiene certificado y no estás en LAN.
+# ---------------------------------------------------------------------------
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteCond %{HTTPS} !=on
+#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>
+
+# ---------------------------------------------------------------------------
+# (Opcional) BasePath si se sirve bajo /espacio-liminal/
+# Útil en algunos hostings para que las rutas relativas vayan finas.
+# ---------------------------------------------------------------------------
+# RewriteBase /espacio-liminal/
+
+# ---------------------------------------------------------------------------
+# (Opcional) CORS para fuentes (woff/woff2) si se usan desde otro subdominio
+# ---------------------------------------------------------------------------
+# <FilesMatch "\.(ttf|ttc|otf|eot|woff|woff2)$">
+#   <IfModule mod_headers.c>
+#     Header set Access-Control-Allow-Origin "*"
+#   </IfModule>
+# </FilesMatch>

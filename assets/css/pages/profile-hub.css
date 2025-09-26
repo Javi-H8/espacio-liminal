@@ -1,0 +1,43 @@
+/* Cabecera del hub */
+.profile-hub{max-width:720px;margin:0 auto}
+.ph-head{display:flex;align-items:center;gap:14px;margin:18px 0 10px}
+.ph-avatar{width:72px;height:72px;border-radius:999px;border:2px solid #2a2a2a;display:grid;place-items:center;overflow:hidden}
+.ph-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.ph-id{display:grid}
+.ph-name{font-weight:700;color:var(--accent);font-size:18px;line-height:1.25}
+.ph-mail{color:#bcbcbc;font-size:13px}
+
+/* Título de sección */
+.ph-title{color:#cfcfcf;font-size:13px;margin:18px 2px 8px}
+
+/* Grupo de items */
+.ph-group{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+
+/* Item */
+.ph-item{
+  --pad:14px;
+  display:grid;grid-template-columns:32px 1fr 20px;gap:12px;align-items:center;
+  width:100%;background:transparent;border:0;color:var(--txt);padding:var(--pad);text-align:left;
+}
+.ph-item + .ph-item{border-top:1px solid var(--border)}
+.ph-item:hover{background:#1a1a1a}
+
+/* Icono izquierdo */
+.ph-ico{width:24px;height:24px;display:grid;place-items:center;color:#e0e0e0}
+.ph-ico svg{width:20px;height:20px;fill:currentColor}
+.ph-ico--orange{color:#ff9e00}
+.ph-ico--green{color:#64dd17}
+.ph-ico--yellow{color:#ffd400}
+.ph-ico--accent{color:var(--accent)}
+/* puntito sólido (categoría) */
+.ph-ico--dot{width:12px;height:12px;border-radius:999px;background:#3ad63a;box-shadow:0 0 0 3px #1f1f1f;border:1px solid #333}
+
+/* Texto y chevron */
+.ph-text{font-size:15px}
+.ph-item--accent .ph-text{color:var(--accent);font-weight:600}
+.ph-chevron{justify-self:end;color:#a8a8a8;font-size:20px;line-height:1}
+
+/* Espaciado inferior en móvil por la nav inferior */
+@media (max-width:1023px){
+  .profile-hub{padding-bottom:100px}
+}

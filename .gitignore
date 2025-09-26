@@ -1,0 +1,48 @@
+﻿# --- SISTEMA/IDE ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+.vscode/
+.idea/
+*.code-workspace
+
+# --- COMPOSER / PHP ---
+/vendor/
+composer.phar
+composer-debug.log
+/.phpunit.cache/
+/coverage/
+
+# --- ENV / SECRETOS ---
+config/.env
+.env
+.env.local
+.env.*.local
+
+# --- NODE / FRONT ---
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/dist/
+/build/
+/tmp/
+/.cache/
+
+# --- ANDROID / iOS (Capacitor/Cordova) ---
+android/
+ios/
+*.keystore
+*.jks
+
+# --- VARIOS ---
+/*.zip
+/.sass-cache
+/.DS_Store
+/public/storage
+/storage/*.key
+
+# --- OUTPUTS LOCALES ---
+/pwa/*.map

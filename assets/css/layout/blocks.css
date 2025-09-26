@@ -1,0 +1,246 @@
+﻿/* ==========================================================================
+   Bloques reutilizables (cards, listas, contenedores…)
+   Idea: piezas neutras que se pueden reusar en cualquier página.
+   ========================================================================== */
+
+/* ----------
+   Card base
+   Borde fino, esquinas suaves y fondo ligeramente elevado.
+   ---------- */
+.card{
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px); /* usa --radius si existe; si no, 12px */
+  background: var(--elev-1, #171717); /* fallback oscuro si no hay tema */
+}
+
+/* Variante con “inset”: sensación de hueco más marcada dentro de la card. */
+.card--inset{
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.02)) ,
+    var(--elev-1, #171717);
+}
+
+/* Variante “ghost”: sin fondo, solo el borde.
+   Útil cuando el fondo de la página ya tiene suficiente contraste. */
+.card--ghost{
+  background: transparent;
+}
+
+/* Cards clicables (por ejemplo, si la card es un <a> o tiene onClick).
+   Se refuerza foco/hover para accesibilidad y feedback visual. */
+.card--clickable{
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease, transform .05s ease;
+}
+
+/* Hover con fallback primero */
+.card--clickable:hover{
+  background: #1a1a1a;
+  border-color: var(--border); /* fallback seguro */
+}
+
+/* Si hay soporte de color-mix, se sobreescribe el borde */
+@supports (color: color-mix(in oklab, white 50%, black 50%)){
+  .card--clickable:hover{
+    border-color: color-mix(in oklab, var(--border) 70%, var(--accent) 30%);
+  }
+}
+
+/* Foco accesible con fallback */
+.card--clickable:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0); /* fallback “transparente” */
+  border-radius: var(--radius, 12px);
+}
+
+/* Si hay soporte, aplicamos el color-mix bonito */
+@supports (color: color-mix(in oklab, white 50%, black 50%)){
+  .card--clickable:focus-visible{
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 35%, transparent);
+  }
+}
+
+.card--clickable:active{
+  transform: translateY(1px);
+}
+/* Foco visible con teclado (no invadir entorno: solo borde virtual suave) */
+.card--clickable:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 35%, transparent);
+  border-radius: var(--radius, 12px);
+}
+
+/* Espaciados internos razonables por defecto (se puede sobreescribir en páginas) */
+.card .card-body{ padding: 14px; }
+.card .card-title{
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.card .card-text{
+  color: var(--muted, #bdbdbd);
+  font-size: 14px;
+}
+
+/* Imágenes seguras dentro de cards y listas (no deformar, esquinas suaves) */
+.card img,
+.list img{
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: calc(var(--radius, 12px) - 2px);
+}
+
+/* Divider fino reutilizable dentro de cards (cuando no compensa una <hr>) */
+.divider{
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+  border: 0;
+}
+
+/* ==========================================================================
+   Listas
+   Estructura flexible para pares etiqueta/valor y acciones a la derecha.
+   ========================================================================== */
+
+/* Lista envolvente: sin bullets, con borde y esquinas, overflow oculto para
+   que los ítems respeten los radios cuando hay hover/foco. */
+.list{
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  overflow: hidden; /* evita desbordes en hover/foco */
+  background: var(--elev-1, #171717);
+}
+
+/* Ítem base: grilla 1fr (contenido) + auto (valor/datos) + 32px (acción/icono) */
+.list li{
+  display: grid;
+  grid-template-columns: 1fr auto 32px;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.list li:last-child{ border-bottom: none; }
+
+/* Variante “compacta”: menos padding y huecos para densidad alta. */
+.list--compact li{
+  padding: 8px 12px;
+  gap: 6px;
+}
+
+/* Variante “borderless”: sin borde externo; útil sobre cards o secciones ya delimitadas. */
+.list--borderless{
+  border: 0;
+  background: transparent;
+}
+.list--borderless li{
+  border-bottom: 1px solid var(--border);
+}
+.list--borderless li:last-child{ border-bottom: 0; }
+
+/* Variante “clickable”: visual de hover + focos accesibles. */
+.list--clickable li{
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.list--clickable li:hover{
+  background: #1a1a1a;
+}
+.list--clickable li:focus-within{
+  outline: none;
+  background: #1a1a1a;
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+/* Etiqueta y valor: tamaños sobrios y color secundario en label. */
+.label{
+  color: var(--sub, #a6a6a6);
+  font-size: 12px;
+}
+.value{
+  font-size: 14px;
+  color: var(--txt, #eaeaea);
+  justify-self: end; /* alinea el valor al final de su columna */
+}
+
+/* Bloques auxiliares para maquetar contenidos más ricos dentro del ítem */
+.item{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Media/avatar/icono a la izquierda (cuadrado por defecto) */
+.item__media{
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #1f1f1f;
+  color: var(--txt, #eaeaea);
+  font-size: 12px;
+}
+
+/* Contenido principal a la derecha */
+.item__content{
+  min-width: 0; /* permite truncamiento con ellipsis */
+}
+.item__title{
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+.item__subtitle{
+  font-size: 12px;
+  color: var(--sub, #a6a6a6);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Acciones a la derecha (la tercera columna), normalmente un icono o botón */
+.item__action{
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+.item__action .icon{
+  width: 16px; height: 16px; fill: currentColor; opacity: .9;
+}
+.item__action:hover{
+  background: #222;
+}
+
+/* Badges/píldoras para estados o etiquetas rápidas */
+.badge{
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.6;
+  border: 1px solid var(--border);
+  background: #1c1c1c;
+  color: var(--txt, #eaeaea);
+}
+.badge--ok{    border-color: #2e7d32; color: #c8f7d1; background: #102e12; }
+.badge--warn{  border-color: #c49000; color: #ffe7a6; background: #2c2200; }
+.badge--info{  border-color: #1f4aa8; color: #cfe0ff; background: #0b1a3d; }
+.badge--accent{border-color: var(--accent); color: #111; background: var(--accent); }
+
+/* Estados de movimiento / accesibilidad */
+@media (prefers-reduced-motion: reduce){
+  .card, .card--clickable, .list--clickable li{ transition: none !important; }
+}

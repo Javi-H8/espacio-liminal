@@ -1,0 +1,35 @@
+﻿/* ==========================================================================
+   Topbar pegada arriba, con fallback opaco y blur si hay soporte.
+   ========================================================================== */
+
+.topbar{
+  height: 56px;
+  display: grid;
+  grid-template-columns: 48px 1fr 48px; /* atrás | título | acción */
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;                    /* por encima de la nav */
+  background: #1a1a1a;            /* fallback sin blur */
+}
+
+/* Activar desenfoque de fondo solo si el navegador lo soporta */
+@supports (backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px)){
+  .topbar{
+    background: rgba(22,22,22, .6);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+}
+
+.topbar h1{
+  font-size: 16px;
+  justify-self: center;
+  margin: 0;
+}
+.topbar .back{
+  display: grid;
+  place-items: center;
+  color: var(--txt);
+}

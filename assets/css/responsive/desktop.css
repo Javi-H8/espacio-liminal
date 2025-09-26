@@ -1,0 +1,123 @@
+﻿/* ==========================================================================
+   Desktop layout (≥1024px)
+   Objetivo: mejorar lectura y organización sin romper el mobile-first.
+   ========================================================================== */
+
+@media (min-width: 1024px){
+
+  /* ----------
+     Contenedor del dashboard (index.php)
+     Se centra y se reparte en 2 columnas: contenido principal + sidebar.
+     ---------- */
+  .home-dash{
+    max-width: 1100px;              /* ancho cómodo para escritorio medio */
+    margin-inline: auto;            /* centrado horizontal */
+    display: grid;
+    grid-template-columns: 1fr 340px;  /* 1fr = main, 340px = columna derecha */
+    gap: 24px;                      /* respiración entre columnas */
+    padding-inline: 24px;           /* margencito lateral para que no pegue a borde */
+  }
+
+  /* ----------
+     Acciones rápidas
+     En escritorio conviene 2 columnas para no alargar de más en vertical.
+     ---------- */
+  .hd-actions{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  /* ----------
+     Tipografía algo más grande en títulos del dashboard
+     Mantener clamp para adaptar según viewport.
+     ---------- */
+  .home-dash h1,
+  .home-dash .title-xl{
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.2;
+  }
+
+  /* ----------
+     Barra de navegación inferior → arriba bajo la topbar en desktop
+     Se usa sticky para que acompañe al hacer scroll.
+     ---------- */
+  .nav{
+    position: sticky;    /* queda pegada al hacer scroll */
+    top: 56px;           /* altura de la topbar */
+    bottom: auto;
+    height: 56px;
+    z-index: 15;         /* por debajo de la topbar, por encima del contenido */
+
+    /* borde y fondo base (sin blur) como fallback universal */
+    border-top: 0;
+    border-bottom: 1px solid var(--border);
+    background: #1a1a1a;
+
+    /* en desktop la distribución se hace horizontal a igualdad de espacio */
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    align-items: center;
+  }
+
+  /* Activar desenfoque si el navegador lo soporta */
+  @supports (backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px)){
+    .nav{
+      background: rgba(22,22,22, .8);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+    }
+  }
+
+  /* ----------
+     Lista interna de la nav (si existe en el HTML)
+     Si no existe .nav__list, este bloque no rompe nada.
+     ---------- */
+  .nav__list{
+    max-width: 1100px;   /* alineada con el contenedor del dashboard */
+    margin: 0 auto;
+    height: 56px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    align-items: center;
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  /* ----------
+     Compensación de barras pegadas
+     - Por defecto: solo topbar (56px).
+     - Si <main> lleva .has-sticky-nav: compensa topbar + nav (112px).
+     ---------- */
+  main{
+    margin-top: 56px;
+  }
+  main.has-sticky-nav{
+    margin-top: 112px;        /* 56 + 56 */
+    scroll-margin-top: 112px; /* para anclajes tipo #seccion */
+  }
+}
+
+/* ==========================================================================
+   Desktop “grande” (≥1280px)
+   Se da un poco más de aire y una sidebar algo más ancha.
+   ========================================================================== */
+@media (min-width: 1280px){
+  .home-dash{
+    max-width: 1280px;
+    grid-template-columns: 1fr 380px;  /* sidebar un pelín más generosa */
+    gap: 28px;
+    padding-inline: 28px;
+  }
+
+  .hd-actions{
+    grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 columnas si cabe */
+    gap: 18px;
+  }
+
+  .nav__list{
+    max-width: 1280px;
+  }
+}

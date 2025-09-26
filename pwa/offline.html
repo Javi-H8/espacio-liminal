@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sin conexión · Espacio Liminal</title>
+<style>
+  body{margin:0;display:grid;place-items:center;min-height:100dvh;background:#111;color:#eaeaea;font-family:system-ui,Segoe UI,Roboto,Arial}
+  .card{max-width:420px;padding:24px;border:1px solid #2a2a2a;border-radius:16px;background:#171717}
+  h1{margin:0 0 8px;font-size:20px}
+  p{margin:0 0 12px;color:#bdbdbd}
+  a{color:#c6ff00;text-decoration:none}
+</style>
+<body>
+  <div class="card">
+    <h1>Estás sin conexión</h1>
+    <p>Se puede seguir usando lo que quedó en caché. En cuanto vuelva la red, todo se actualizará.</p>
+    <p><a href="/espacio-liminal/">Volver al inicio</a></p>
+  </div>
+</body>
+</html>
+<!--
+  offline.html
+  Página que sirve el service worker cuando no hay conexión.
+  Debe estar en la misma carpeta que service-worker.js para que este pueda
+  encontrarla (normalmente la raíz del scope, que aquí es /espacio-liminal/).

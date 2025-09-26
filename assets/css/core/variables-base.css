@@ -1,0 +1,7 @@
+﻿:root{
+  --bg:#0f0f0f; --card:#161616; --txt:#e6e6e6; --sub:#a1a1a1; --border:#262626;
+  --accent:#C6FF00; --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,Segoe UI,Roboto,Arial}
+a{color:var(--accent);text-decoration:none}
