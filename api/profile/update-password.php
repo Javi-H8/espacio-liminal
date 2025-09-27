@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/bootstrap.php';
+require_once __DIR__ . '/../../config/session.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 if (empty($_SESSION['user_id'])) { http_response_code(401); json_out(['ok'=>false,'error'=>'No autenticado']); }
