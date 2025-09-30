@@ -1,14 +1,24 @@
 <?php
-require_once __DIR__ . '/../../config/bootstrap.php';
-require_once __DIR__ . '/../../config/session.php';
+/**
+ * Actualiza TELÉFONO
+ * - Entrada JSON: { csrf, phone }
+ * - No me flip* con validaciones de formato; lo dejamos suave
+ */
+declare(strict_types=1);
+require_once __DIR__ . '/../config/bootstrap.php';
+require_once __DIR__ . '/../config/session.php';
+header('Content-Type: application/json; charset=utf-8');
 
-$data = json_decode(file_get_contents('php://input'), true) ?? [];
-$phone = trim($data['phone'] ?? '');
-if ($phone === '') { http_response_code(400); json_out(['ok'=>false,'error'=>'Número requerido']); }
+$uid = auth_user_id(); if (!$uid) json_out(['ok'=>false,'error'=>'No autorizado'], 401);
+$in = json_decode(file_get_contents('php://input'), true) ?? [];
+csrf_verify($in['csrf'] ?? null);
 
-$userId = 1;
-$stmt = $mysqli->prepare("UPDATE users SET phone=?, updated_at=NOW() WHERE id=?");
-$stmt->bind_param('si', $phone, $userId);
-$ok = $stmt->execute(); $stmt->close();
+$phone = trim((string)($in['phone'] ?? ''));
+if (mb_strlen($phone) > 32) json_out(['ok'=>false,'error'=>'Teléfono demasiado largo'], 400);
 
-json_out(['ok'=>$ok ? true : false, 'phone'=>$phone]);
+$ok = db_exec_nonquery(
+  "UPDATE users SET phone=?, updated_at=? WHERE id=?",
+  'ssi', [$phone, date('Y-m-d H:i:s'), $uid]
+)['ok'];
+
+json_out(['ok'=>$ok], $ok?200:500);

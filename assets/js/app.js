@@ -215,7 +215,7 @@ document.addEventListener('click', async (e)=>{
   const r = await postJSON('api/profile/update-lang.php', { lang, csrf });
   if (r.ok){
     const map = { es:'Español', en:'Inglés', fr:'Francés', it:'Italiano' };
-    $('.js-lang-sub')?.textContent = map[lang] || lang;
+    { const el = $('.js-lang-sub'); if (el) el.textContent = map[lang] || lang; }
     closeDialog(b);
   } else alert(r.error || 'No se pudo guardar');
 });
@@ -238,7 +238,7 @@ document.addEventListener('click', async (e)=>{
       naturaleza:'Naturaleza', ocio:'Ocio', aventura:'Aventura',
       cultural:'Cultural', todos:'Todos', custom:'Selección personalizada'
     };
-    $('.js-cat-sub')?.textContent = map[cat] || cat;
+    { const el = $('.js-cat-sub'); if (el) el.textContent = map[cat] || cat; }
     closeDialog(b);
   } else alert(r.error || 'No se pudo guardar');
 });
@@ -325,7 +325,7 @@ document.addEventListener('click', async (e)=>{
 
   const r = await postJSON('api/profile/update-name.php', { name });
   if(r.ok){
-    $('.js-name')?.textContent = name;
+    { const el = $('.js-name'); if (el) el.textContent = name; }  
     closeDialog(b);
   } else alert(r.error || 'No se pudo guardar');
 });
@@ -357,7 +357,7 @@ document.addEventListener('click', async (e)=>{
 
   const r = await postJSON('api/profile/update-email-confirm.php', { code });
   if(r.ok){
-    $('.js-email')?.textContent = r.email;
+    { const el = $('.js-email'); if (el) el.textContent = r.email; }
     closeDialog(b);
   } else alert(r.error || 'Código incorrecto');
 });
@@ -373,7 +373,7 @@ document.addEventListener('click', async (e)=>{
 
   const r = await postJSON('api/profile/update-phone.php', { phone });
   if(r.ok){
-    $('.js-phone')?.textContent = phone;
+    { const el = $('.js-phone'); if (el) el.textContent = phone; }
     closeDialog(b);
   } else alert(r.error || 'No se pudo guardar');
 });
@@ -389,7 +389,71 @@ document.addEventListener('click', async (e)=>{
 
   const r = await postJSON('api/profile/update-gender.php', { gender });
   if(r.ok){
-    $('.js-gender')?.textContent = gender;
+    { const el = $('.js-gender'); if (el) el.textContent = gender; }
     closeDialog(b);
   } else alert(r.error || 'No se pudo guardar');
 });
+
+// =====================================================
+// NAV INFERIOR CON AUTOCULTADO SEGÚN SCROLL
+// -----------------------------------------------------
+// - Al bajar (scroll down) → escondo la nav para ganar espacio.
+// - Al subir (scroll up)   → la muestro para navegar rápido.
+// - Si estoy arriba del todo (y <= 0) → siempre visible.
+// - Uso requestAnimationFrame para que vaya fino y no laggee.
+// - Umbral (threshold) para evitar parpadeos en micro-scroll.
+// =====================================================
+(() => {
+  const nav = document.getElementById('bottomNav');
+  if (!nav) return; // si en esta vista no hay nav, salgo y no molesto
+
+  let lastY = window.scrollY;  // guardo la posición anterior
+  let ticking = false;         // bloqueo para no spamear el main thread
+  const threshold = 8;         // 8px de margen (ajústalo si lo notas “nervioso”)
+
+  // Lógica principal: decidir si escondo o muestro
+  const applyAutoHide = () => {
+    const y = window.scrollY;
+    const delta = y - lastY;
+
+    // 1) En la parte de arriba del todo → la nav SIEMPRE visible
+    if (y <= 0) {
+      nav.classList.remove('is-hidden');
+      lastY = y;
+      return;
+    }
+
+    // 2) Si he bajado lo suficiente → ¡ocúltate, bicho!
+    if (delta > threshold) {
+      nav.classList.add('is-hidden');
+      lastY = y;
+      return;
+    }
+
+    // 3) Si he subido lo suficiente → asoma otra vez
+    if (delta < -threshold) {
+      nav.classList.remove('is-hidden');
+      lastY = y;
+      return;
+    }
+
+    // 4) Si el movimiento es mínimo, actualizo lastY y no hago nada más
+    lastY = y;
+  };
+
+  // Listener de scroll con rAF para que vaya mantequilla
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      applyAutoHide();
+      ticking = false;
+    });
+  }, { passive: true });
+
+  // BONUS: si se cambia de orientación o se hace zoom raro, recalculo
+  window.addEventListener('resize', () => {
+    lastY = window.scrollY;
+    nav.classList.remove('is-hidden');
+  });
+})();

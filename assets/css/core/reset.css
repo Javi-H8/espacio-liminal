@@ -1,0 +1,53 @@
+/* ============================================================================
+   RESET SUAVE (sin cargarnos nada raro) — versión vitaminada
+   ----------------------------------------------------------------------------
+   - Quito márgenes “sorpresa”.
+   - Todo con border-box (también ::before/::after).
+   - Evito scroll horizontal global (overflow-x) por desbordes puntuales.
+   - Dejo aire inferior cuando tenemos la nav fija abajo (with-bottom-nav).
+   - Focus accesible bonito y respetuoso con reduce-motion.
+   ============================================================================ */
+
+/* Que TODO mida con border-box (también pseudo-elementos) */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Base limpia y sin desplazamientos laterales “fantasma” */
+html, body{
+  margin:0; padding:0;
+  width:100%;
+  overflow-x: hidden;              /* <- adiós barras horizontales no deseadas */
+  -webkit-text-size-adjust: 100%;  /* iOS: no me cambies tamaños “porque sí” */
+  text-size-adjust: 100%;
+}
+
+/* Medios fluidos */
+img, svg, video{ display:block; max-width:100%; height:auto; }
+
+/* Márgenes básicos simplificados en tipografía y listas */
+h1,h2,h3,h4,h5,h6,p,ul,ol,dl,figure{ margin:0 0 12px; }
+ul,ol{ padding-left: 1.25rem; }
+
+/* Formularios sin heredar tipografías raras del user-agent */
+button, input, select, textarea{ font: inherit; color: inherit; }
+
+/* Enlaces sin subrayado por defecto (ya lo gestiono con clases .link) */
+a{ color: inherit; text-decoration: none; }
+
+/* Accesibilidad: enfoque visible bonito y usable con teclado */
+:focus-visible{
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: 10px;
+}
+
+/* Respeto accesibilidad: si prefieren menos animación, corto el rollo global */
+@media (prefers-reduced-motion: reduce){
+  * { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
+
+/*  Aire inferior global para que la NAV inferior NUNCA tape contenido
+   - Usa .with-bottom-nav en el <body> cuando haya nav fija abajo. */
+body.with-bottom-nav{
+  /* Altura real de la nav (64px) + un pelín por si hay safe-area en iPhone */
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 12px);
+}

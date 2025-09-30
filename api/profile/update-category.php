@@ -1,34 +1,25 @@
 <?php
-require_once __DIR__ . '/../../config/bootstrap.php';
-require_once __DIR__ . '/../../config/session.php';
-if (session_status() === PHP_SESSION_NONE) session_start();
+/**
+ * Actualiza CATEGORÍA favorita
+ * - Entrada JSON: { csrf, preferred_category }
+ * - Lista cerrada de ejemplo (ajusta a tu BBDD si tienes tabla categorías)
+ */
+declare(strict_types=1);
+require_once __DIR__ . '/../config/bootstrap.php';
+require_once __DIR__ . '/../config/session.php';
+header('Content-Type: application/json; charset=utf-8');
 
-if (empty($_SESSION['user_id'])) { http_response_code(401); json_out(['ok'=>false,'error'=>'No autenticado']); }
+$uid = auth_user_id(); if (!$uid) json_out(['ok'=>false,'error'=>'No autorizado'], 401);
+$in = json_decode(file_get_contents('php://input'), true) ?? [];
+csrf_verify($in['csrf'] ?? null);
 
-$data = json_decode(file_get_contents('php://input'), true) ?? [];
-$cat  = $data['cat'] ?? '';
-$csrf = $data['csrf'] ?? null;
+$allowed = ['todos','nature','city','mountains','beach','culture'];
+$pref    = (string)($in['preferred_category'] ?? 'todos');
+if (!in_array($pref, $allowed, true)) $pref = 'todos';
 
-if (function_exists('csrf_verify')) { csrf_verify($csrf); }
-if (function_exists('rate_limiter')) { rate_limiter('profile_update', 30, 60); }
+$ok = db_exec_nonquery(
+  "UPDATE users SET preferred_category=?, updated_at=? WHERE id=?",
+  'ssi', [$pref, date('Y-m-d H:i:s'), $uid]
+)['ok'];
 
-$allowed = ['naturaleza','ocio','aventura','cultural','todos','custom'];
-if (!in_array($cat, $allowed, true)) {
-  http_response_code(400);
-  json_out(['ok'=>false,'error'=>'Categoría inválida']);
-}
-
-$userId = (int)$_SESSION['user_id'];
-$stmt = $mysqli->prepare("UPDATE users SET preferred_category=? WHERE id=?");
-if (!$stmt) { http_response_code(500); json_out(['ok'=>false,'error'=>'DB prepare']); }
-$stmt->bind_param('si', $cat, $userId);
-$ok = $stmt->execute();
-$stmt->close();
-
-if ($ok) {
-  $_SESSION['preferred_category'] = $cat;
-  json_out(['ok'=>true]);
-} else {
-  http_response_code(500);
-  json_out(['ok'=>false,'error'=>'No se pudo guardar']);
-}
+json_out(['ok'=>$ok], $ok?200:500);

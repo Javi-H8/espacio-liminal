@@ -11,6 +11,8 @@
 require_once __DIR__ . '/config/bootstrap.php';  // $mysqli, helpers (json_out, etc.)
 require_once __DIR__ . '/config/session.php';    // shim de dev: $_SESSION['user_id']=1 si no hay login
 
+$active = 'inicio'; // o 'perfil', 'mapa', etc. según la página
+
 header('Content-Type: text/html; charset=utf-8');
 
 /* Cache busting: si existe define('BUILD', '20250927'), la uso; si no, YYYYmmdd */
@@ -69,34 +71,35 @@ $active = 'perfil';
 
   <!-- Base de la app para que app.js construya bien las rutas (importante en /espacio-liminal/) -->
   <script>
-    window.APP_BASE = "/espacio-liminal/";               // cambia si despliegas en otra carpeta
-    window.BUILD    = "<?=htmlspecialchars($build)?>";    // útil si en el future quieres comparar versiones
+    //  base dinámica desde PHP (para que el front no rompa rutas)
+    window.APP_BASE = "<?= rtrim(url(''), '/') ?>/";
+    window.BUILD    = "<?= htmlspecialchars($build) ?>";
   </script>
 
   <!-- CORE: variables primero, utilidades después -->
-  <link rel="stylesheet" href="assets/css/core/variables-base.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/core/utilities.css?v=<?=htmlspecialchars($build)?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/core/variables-base.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/core/utilities.css') ?>">
 
   <!-- LAYOUT / COMPONENTS compartidos -->
-  <link rel="stylesheet" href="assets/css/layout/topbar.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/components/buttons-links.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/components/nav.css?v=<?=htmlspecialchars($build)?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/layout/topbar.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/components/buttons-links.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/components/nav.css') ?>">
 
   <!-- CSS específico de esta página -->
-  <link rel="stylesheet" href="assets/css/pages/profile-hub.css?v=<?=htmlspecialchars($build)?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/pages/profile-hub.css') ?>">
 
   <!-- RESPONSIVE al final -->
-  <link rel="stylesheet" href="assets/css/responsive/tablet.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/responsive/desktop.css?v=<?=htmlspecialchars($build)?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/responsive/tablet.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/responsive/desktop.css') ?>">
 
   <!-- JS general de UI (abre/cierra sheets, OTP, acciones…) -->
-  <script defer src="assets/js/app.js?v=<?=htmlspecialchars($build)?>"></script>
+  <script defer src="<?= asset('assets/js/app.js') ?>"></script>
 </head>
 <body>
 
   <!-- Topbar con botón de volver (usa APP_BASE para no romper rutas) -->
   <header class="topbar" role="banner">
-    <a class="back" href="/espacio-liminal/" aria-label="Volver">←</a>
+    <a class="back" href="<?= url('') ?>" aria-label="Volver">←</a>
     <h1>Perfil</h1><span aria-hidden="true"></span>
   </header>
 
@@ -106,8 +109,12 @@ $active = 'perfil';
     <!-- Cabecera de perfil: avatar + nombre + email -->
     <div class="ph-head">
       <div class="ph-avatar">
-        <!-- Si el usuario no tiene avatar_url, este <img> tirará del fallback de arriba -->
-        <img src="<?=htmlspecialchars($user['avatar'])?>" alt="Foto de perfil" decoding="async" loading="lazy">
+        <?php
+          $avatar = $user['avatar'];
+          // si es absoluta (http/https), la respeto; si es relativa, construyo URL del sitio
+          $avatarUrl = (preg_match('~^https?://~i', $avatar)) ? $avatar : asset($avatar);
+        ?>
+<img src="<?= htmlspecialchars($avatarUrl) ?>" alt="Foto de perfil" decoding="async" loading="lazy">
       </div>
       <div class="ph-id">
         <div class="ph-name"><?=htmlspecialchars($user['name'])?></div>
@@ -148,7 +155,7 @@ $active = 'perfil';
     <h3 class="ph-title">Ajustes generales</h3>
     <section class="ph-group">
       <!-- Editar perfil (lleva a la pantalla de edición con todas las hojas) -->
-      <a class="ph-item" href="/espacio-liminal/perfil_editar.php">
+      <a class="ph-item" href="<?= url('perfil_editar.php') ?>">
         <span class="ph-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Z"/><path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/></svg>
         </span>
@@ -186,7 +193,7 @@ $active = 'perfil';
     <!-- Otros ajustes -->
     <h3 class="ph-title">Otros ajustes</h3>
     <section class="ph-group">
-      <a class="ph-item" href="/espacio-liminal/politicas.php">
+      <a class="ph-item" href="<?= url('politicas.php') ?>">
         <span class="ph-ico" aria-hidden="true">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h6"/></svg>
         </span>

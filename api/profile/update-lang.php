@@ -1,36 +1,25 @@
 <?php
-require_once __DIR__ . '/../../config/bootstrap.php';
-require_once __DIR__ . '/../../config/session.php';
-if (session_status() === PHP_SESSION_NONE) session_start();
+/**
+ * Actualiza IDIOMA
+ * - Entrada JSON: { csrf, locale }
+ * - Permitimos: es, en, fr, it
+ */
+declare(strict_types=1);
+require_once __DIR__ . '/../config/bootstrap.php';
+require_once __DIR__ . '/../config/session.php';
+header('Content-Type: application/json; charset=utf-8');
 
-if (empty($_SESSION['user_id'])) { http_response_code(401); json_out(['ok'=>false,'error'=>'No autenticado']); }
-
-$data = json_decode(file_get_contents('php://input'), true) ?? [];
-$lang = $data['lang'] ?? '';
-$csrf = $data['csrf'] ?? null;
-
-/* Si tienes verificación CSRF, úsala */
-if (function_exists('csrf_verify')) { csrf_verify($csrf); }
-/* Si tienes limitador, úsalo (por ejemplo, 30 peticiones/minuto) */
-if (function_exists('rate_limiter')) { rate_limiter('profile_update', 30, 60); }
+$uid = auth_user_id(); if (!$uid) json_out(['ok'=>false,'error'=>'No autorizado'], 401);
+$in = json_decode(file_get_contents('php://input'), true) ?? [];
+csrf_verify($in['csrf'] ?? null);
 
 $allowed = ['es','en','fr','it'];
-if (!in_array($lang, $allowed, true)) {
-  http_response_code(400);
-  json_out(['ok'=>false,'error'=>'Idioma no soportado']);
-}
+$locale  = (string)($in['locale'] ?? 'es');
+if (!in_array($locale, $allowed, true)) $locale = 'es';
 
-$userId = (int)$_SESSION['user_id'];
-$stmt = $mysqli->prepare("UPDATE users SET locale=? WHERE id=?");
-if (!$stmt) { http_response_code(500); json_out(['ok'=>false,'error'=>'DB prepare']); }
-$stmt->bind_param('si', $lang, $userId);
-$ok = $stmt->execute();
-$stmt->close();
+$ok = db_exec_nonquery(
+  "UPDATE users SET locale=?, updated_at=? WHERE id=?",
+  'ssi', [$locale, date('Y-m-d H:i:s'), $uid]
+)['ok'];
 
-if ($ok) {
-  $_SESSION['locale'] = $lang; // refresco local rápido
-  json_out(['ok'=>true]);
-} else {
-  http_response_code(500);
-  json_out(['ok'=>false,'error'=>'No se pudo guardar']);
-}
+json_out(['ok'=>$ok], $ok?200:500);

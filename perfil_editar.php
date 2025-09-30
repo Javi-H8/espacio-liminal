@@ -1,62 +1,49 @@
 <?php
-/* ==========================================================================
-   perfil_editar.php — Pantalla de edición de perfil
-   Qué hago aquí (en cristiano y sin novela):
-   - Cargo bootstrap (DB, helpers) + un “shim” de sesión de dev (hasta que metas login real).
-   - Leo los datos del usuario LOGUEADO desde la BD (cero hardcode).
-   - Pinto lista editable (nombre, email, password, género, teléfono) que abre hojas (sheets).
-   - Dejo APP_BASE y BUILD para que el front construya rutas bien y la caché no nos trollee.
-   ========================================================================== */
+/**
+ * PERFIL (modo web con nav inferior) — sin romper nada del backend ni del JS, palabrita :)
+ * - Sigo con tu flujo: bootstrap, sesión, CSRF, ENUMs, etc.
+ * - Aquí SOLO meto la barra de navegación de abajo y el “aire” para que no tape nada.
+ */
+declare(strict_types=1);
+require_once __DIR__ . '/config/bootstrap.php';
+require_once __DIR__ . '/config/session.php';
+$active = 'inicio'; // o 'perfil', 'mapa', etc. según la página
 
-require_once __DIR__ . '/config/bootstrap.php';  // $mysqli, helpers (hash_pass, json_out, etc.)
-require_once __DIR__ . '/config/session.php';    // shim de dev: $_SESSION['user_id']=1 si no hay login
+$uid = auth_user_id();
+if (!$uid) { redirect('login.php'); }
 
-header('Content-Type: text/html; charset=utf-8');
+// Me traigo mis datos (igual que antes)
+$u = db_exec(
+  "SELECT name,email,COALESCE(phone,'') phone, gender, locale,
+          preferred_category, COALESCE(avatar_url,'') avatar_url
+   FROM users WHERE id=? LIMIT 1", 'i', [$uid]
+)[0] ?? null;
 
-/* Cache busting sencillito:
-   - Si existe define('BUILD','20250927'), la uso.
-   - Si no, YYYYmmdd para que el navegador refresque en dev sin volverse loco. */
-$build = defined('BUILD') ? BUILD : date('Ymd');
+if (!$u) { http_response_code(500); echo "No encuentro tu usuario (id $uid)"; exit; }
 
-/* ID del usuario logueado (cuando tengas auth real, esto no cambia) */
-$userId = auth_user_id();
+$csrf = csrf_token();
 
-/* === Usuario desde BD (si no hay sesión, pinto cortesía y no rompo nada) ===
-   Campos esperados en users: name, email, gender, phone, locale, preferred_category, avatar_url */
-$user = [
-  "name"     => "Invitado",
-  "email"    => "",
-  "gender"   => "Sin especificar",
-  "phone"    => "",
-  "locale"   => "es",
-  "category" => "todos",
-  "avatar"   => "assets/img/avatar.jpg", // fallback si no hay avatar_url en BD
+// Mapas para mostrar etiqueta bonita (la BBDD guarda el ENUM real)
+$GENDER_LABEL = [
+  'male'         => 'Masculino',
+  'female'       => 'Femenino',
+  'unspecified'  => 'Sin especificar',
+  'other'        => 'Otro',
 ];
-if ($userId) {
-  $stmt = $mysqli->prepare(
-    "SELECT
-        COALESCE(name,''), COALESCE(email,''), COALESCE(gender,'Sin especificar'),
-        COALESCE(phone,''), COALESCE(locale,'es'), COALESCE(preferred_category,'todos'),
-        COALESCE(avatar_url,'')
-     FROM users WHERE id=? LIMIT 1"
-  );
-  if ($stmt) {
-    $stmt->bind_param('i', $userId);
-    if ($stmt->execute()) {
-      $stmt->bind_result($name,$email,$gender,$phone,$locale,$cat,$avatar);
-      if ($stmt->fetch()) {
-        if ($name   !== '') $user['name']   = $name;
-        if ($email  !== '') $user['email']  = $email;
-        if ($gender !== '') $user['gender'] = $gender;
-        if ($phone  !== '') $user['phone']  = $phone;
-        $user['locale']   = $locale ?: 'es';
-        $user['category'] = $cat    ?: 'todos';
-        if ($avatar !== '') $user['avatar'] = $avatar;
-      }
-    }
-    $stmt->close();
-  }
-}
+$CATEGORY_LABEL = [
+  'naturaleza' => 'Naturaleza',
+  'ocio'       => 'Ocio',
+  'aventura'   => 'Aventura',
+  'cultural'   => 'Cultural',
+  'todos'      => 'Todos',
+  'custom'     => 'Personalizada',
+];
+
+/* ====================== IMPORTANTE: activo de la nav ======================
+   - Yo aquí marco 'perfil' para que tu nav pinte ese icono activo.
+   - Ojo: esto lo uso abajo cuando hago el include del nav.
+=========================================================================== */
+$active = 'perfil';
 ?>
 <!doctype html>
 <html lang="es">
@@ -64,121 +51,304 @@ if ($userId) {
   <meta charset="utf-8">
   <title>Editar perfil · Espacio Liminal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0f0f0f">
 
-  <!-- APP_BASE para que app.js construya URLs bien aunque mueva la app de carpeta -->
-  <script>
-    window.APP_BASE = "/espacio-liminal/";               // cambia si despliegas en otra ruta
-    window.BUILD    = "<?=htmlspecialchars($build)?>";    // por si quieres comparar versiones en el front
+  <!-- Tus CSS base -->
+  <link rel="stylesheet" href="<?= asset('assets/css/core/variables-base.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/core/reset.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/core/typography.css') ?>">
+
+  <!-- Estilos de perfil (los tuyos) -->
+  <link rel="stylesheet" href="<?= asset('assets/css/pages/profile.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/pages/profile.mobile.css') ?>">
+  <link rel="stylesheet" href="<?= asset('assets/css/pages/profile.web.css') ?>">
+
+  <!--  Aquí engancho el CSS de la barra inferior (tu componente) -->
+  <link rel="stylesheet" href="<?= asset('assets/css/components/nav.css') ?>">
+
+  <!-- Tu JS de perfil (intacto) -->
+  <script src="<?= asset('assets/js/perfil_editar.js') ?>" defer></script>
+
+  <!-- (Opcional) Autohide del nav: se oculta al bajar y aparece al subir -->
+  <script defer>
+  // Mini script para esconder/mostrar la nav al hacer scroll. Si no te mola, lo borras y listo.
+  document.addEventListener('DOMContentLoaded', () => {
+    const nav = document.getElementById('bottomNav');
+    if (!nav) return;
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      // Si bajo mucho → escondo; si subo → enseño
+      if (y > lastY + 8) { nav.classList.add('is-hidden'); } 
+      else if (y < lastY - 8) { nav.classList.remove('is-hidden'); }
+      lastY = y;
+      ticking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(onScroll);
+        ticking = true;
+      }
+    }, { passive: true });
+  });
   </script>
-
-  <!-- CORE -->
-  <link rel="stylesheet" href="assets/css/core/variables-base.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/core/utilities.css?v=<?=htmlspecialchars($build)?>">
-
-  <!-- LAYOUT -->
-  <link rel="stylesheet" href="assets/css/layout/topbar.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/layout/blocks.css?v=<?=htmlspecialchars($build)?>">
-
-  <!-- COMPONENTS -->
-  <link rel="stylesheet" href="assets/css/components/buttons-links.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/components/forms.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/components/sheets.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/components/profile-and-misc.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/components/nav.css?v=<?=htmlspecialchars($build)?>">
-
-  <!-- PÁGINA -->
-  <link rel="stylesheet" href="assets/css/pages/profile.css?v=<?=htmlspecialchars($build)?>">
-
-  <!-- RESPONSIVE -->
-  <link rel="stylesheet" href="assets/css/responsive/tablet.css?v=<?=htmlspecialchars($build)?>">
-  <link rel="stylesheet" href="assets/css/responsive/desktop.css?v=<?=htmlspecialchars($build)?>">
-
-  <!-- JS general (abre/cierra sheets, OTP, acciones de perfil…) -->
-  <script defer src="assets/js/app.js?v=<?=htmlspecialchars($build)?>"></script>
 </head>
-<body>
-  <!-- Topbar con “volver” (uso la ruta base para no romper si cambio de carpeta) -->
-  <header class="topbar" role="banner">
-    <a class="back" href="/espacio-liminal/" aria-label="Volver">←</a>
-    <h1>Editar perfil</h1><span aria-hidden="true"></span>
+<body class="theme-dark">
+
+  <!-- Cabecera “web” de la página (simple, sin tocar tu topbar global) -->
+  <header class="pw-head">
+    <div class="pw-head__inner">
+      <h1 class="pw-title">Editar perfil</h1>
+      <nav class="pw-bread"><a href="<?= url('') ?>">Inicio</a> / <span>Perfil</span></nav>
+    </div>
   </header>
 
-  <!-- “has-sticky-nav” por si en desktop la nav sube bajo la topbar -->
-  <main class="container container--page has-sticky-nav" role="main">
-    <!-- Cabecera con avatar y CTA de cambiar foto -->
-    <section class="profile-head">
-      <div class="avatar-wrap">
-        <img src="<?=htmlspecialchars($user['avatar'])?>" alt="avatar" decoding="async" loading="lazy">
-        <span class="badge">1</span> <!-- si luego quieres notis o nivel, aquí encaja -->
+  <!-- Shell de 2 columnas (desktop) / 1 columna (móvil)
+       NOTA: le pongo has-sticky-nav para dar aire abajo (que la nav no tape nada) -->
+  <main class="pw-shell has-sticky-nav" role="main">
+
+    <!-- Columna izquierda: avatar -->
+    <aside class="pw-left">
+      <section class="pw-card pw-card--avatar">
+        <div class="pw-avatar">
+          <div class="pw-avatar__ring">
+            <?php
+              $rawAvatar = $u['avatar_url'] ?: 'assets/img/avatar-default.png';
+              $avatarSrc = preg_match('~^https?://~i', $rawAvatar) ? $rawAvatar : asset($rawAvatar);
+              ?>
+              <img id="avatarPreview" src="<?= htmlspecialchars($avatarSrc) ?>" alt="Tu avatar">
+          </div>
+        </div>
+
+        <form data-avatar class="pw-avatar__form" enctype="multipart/form-data">
+          <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+          <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required class="pw-file">
+          <button class="pw-btn pw-btn--lime" type="submit">CAMBIAR  FOTO</button>
+          <span class="pw-msg" aria-live="polite"></span>
+        </form>
+
+        <p class="pw-note">JPG/PNG/WebP · Máx 2&nbsp;MB. Se recorta en círculo.</p>
+      </section>
+    </aside>
+
+    <!-- Columna derecha: tus campos editables (tal cual los teníamos) -->
+    <section class="pw-right">
+
+      <div class="pw-group">
+        <h2 class="pw-group__title">Datos de la cuenta</h2>
+
+        <!-- Nombre -->
+        <div class="pw-item profile-row" data-field="name">
+          <div class="pw-item__row row-head">
+            <div class="pw-item__text">
+              <div class="pw-label">Nombre</div>
+              <div class="pw-value" data-value="name"><?= htmlspecialchars($u['name']) ?></div>
+            </div>
+            <button type="button" class="pw-icon-btn" data-toggle="name" aria-label="Editar nombre">
+              <svg viewBox="0 0 24 24" class="pw-i"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42L18.37 3.29a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <div class="edit-pane pw-pane">
+            <form data-submit="name" class="pw-form-inline">
+              <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+              <input type="text" name="name" value="<?= htmlspecialchars($u['name']) ?>" required minlength="2" maxlength="120" class="pw-input">
+              <button class="pw-btn pw-btn--primary" type="submit">Guardar</button>
+              <span class="pw-msg msg" aria-live="polite"></span>
+            </form>
+          </div>
+        </div>
+
+        <!-- Email (solo lectura) -->
+        <div class="pw-item">
+          <div class="pw-item__row">
+            <div class="pw-item__text">
+              <div class="pw-label">Email</div>
+              <div class="pw-value"><?= htmlspecialchars($u['email']) ?></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="pw-item profile-row" data-field="password">
+          <div class="pw-item__row row-head">
+            <div class="pw-item__text">
+              <div class="pw-label">Contraseña</div>
+              <div class="pw-value">********</div>
+            </div>
+            <button type="button" class="pw-icon-btn" data-toggle="password" aria-label="Cambiar contraseña">
+              <svg viewBox="0 0 24 24" class="pw-i"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42L18.37 3.29a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z" fill="currentColor"/></svg>
+            </button>
+          </div>
+
+          <div class="edit-pane pw-pane">
+            <form data-submit="password" class="pw-form-grid">
+              <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+              <input type="password" name="current" placeholder="Actual" class="pw-input" required>
+              <input type="password" name="new"     placeholder="Nueva (mín. 8)" minlength="8" class="pw-input" required>
+              <input type="password" name="new2"    placeholder="Repite nueva"   minlength="8" class="pw-input" required>
+              <div class="pw-form__actions">
+                <button class="pw-btn pw-btn--primary" type="submit">Guardar</button>
+                <span class="pw-msg msg" aria-live="polite"></span>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
-      <button class="chip" id="btnChangePhoto" type="button">CAMBIAR&nbsp;&nbsp;FOTO</button>
+
+      <div class="pw-group">
+        <h2 class="pw-group__title">Preferencias</h2>
+
+        <!-- Género -->
+        <div class="pw-item profile-row" data-field="gender">
+          <div class="pw-item__row row-head">
+            <div class="pw-item__text">
+              <div class="pw-label">Género</div>
+              <div class="pw-value" data-value="gender"><?= htmlspecialchars($GENDER_LABEL[$u['gender']] ?? 'Sin especificar') ?></div>
+            </div>
+            <button type="button" class="pw-icon-btn" data-toggle="gender" aria-label="Editar género">
+              <svg viewBox="0 0 24 24" class="pw-i"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42L18.37 3.29a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <div class="edit-pane pw-pane">
+            <form data-submit="gender" class="pw-form-inline">
+              <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+              <select name="gender" class="pw-select">
+                <?php foreach (['male','female','unspecified','other'] as $gv): ?>
+                  <option value="<?= $gv ?>" <?= $u['gender']===$gv?'selected':'' ?>>
+                    <?= $GENDER_LABEL[$gv] ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+              <button class="pw-btn pw-btn--primary" type="submit">Guardar</button>
+              <span class="pw-msg msg" aria-live="polite"></span>
+            </form>
+          </div>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="pw-item profile-row" data-field="phone">
+          <div class="pw-item__row row-head">
+            <div class="pw-item__text">
+              <div class="pw-label">Número</div>
+              <div class="pw-value" data-value="phone"><?= $u['phone'] ?: '—' ?></div>
+            </div>
+            <button type="button" class="pw-icon-btn" data-toggle="phone" aria-label="Editar número">
+              <svg viewBox="0 0 24 24" class="pw-i"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42L18.37 3.29a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <div class="edit-pane pw-pane">
+            <form data-submit="phone" class="pw-form-inline">
+              <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+              <input type="tel" name="phone" value="<?= htmlspecialchars($u['phone']) ?>" maxlength="30"
+                     class="pw-input" placeholder="+34 680 86 59 90">
+              <button class="pw-btn pw-btn--primary" type="submit">Guardar</button>
+              <span class="pw-msg msg" aria-live="polite"></span>
+            </form>
+          </div>
+        </div>
+
+        <!-- Idioma -->
+        <div class="pw-item profile-row" data-field="locale">
+          <div class="pw-item__row row-head">
+            <div class="pw-item__text">
+              <div class="pw-label">Idioma</div>
+              <div class="pw-value" data-value="locale"><?= strtoupper($u['locale']) ?></div>
+            </div>
+            <button type="button" class="pw-icon-btn" data-toggle="locale" aria-label="Editar idioma">
+              <svg viewBox="0 0 24 24" class="pw-i"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42L18.37 3.29a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <div class="edit-pane pw-pane">
+            <form data-submit="locale" class="pw-form-inline">
+              <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+              <select name="locale" class="pw-select">
+                <?php
+                  $langs = ['es'=>'Español','en'=>'English','fr'=>'Français','it'=>'Italiano'];
+                  foreach ($langs as $code=>$label) {
+                    $sel = ($u['locale']===$code)?' selected':'';
+                    echo "<option value=\"$code\"$sel>$label</option>";
+                  }
+                ?>
+              </select>
+              <button class="pw-btn pw-btn--primary" type="submit">Guardar</button>
+              <span class="pw-msg msg" aria-live="polite"></span>
+            </form>
+          </div>
+        </div>
+
+        <!-- Categoría -->
+        <div class="pw-item profile-row" data-field="category">
+          <div class="pw-item__row row-head">
+            <div class="pw-item__text">
+              <div class="pw-label">Categoría favorita</div>
+              <div class="pw-value" data-value="category">
+                <?= htmlspecialchars($CATEGORY_LABEL[$u['preferred_category']] ?? $u['preferred_category']) ?>
+              </div>
+            </div>
+            <button type="button" class="pw-icon-btn" data-toggle="category" aria-label="Editar categoría">
+              <svg viewBox="0 0 24 24" class="pw-i"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42L18.37 3.29a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <div class="edit-pane pw-pane">
+            <form data-submit="category" class="pw-form-inline">
+              <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
+              <select name="preferred_category" class="pw-select">
+                <?php
+                  $catValues = ['naturaleza','ocio','aventura','cultural','todos','custom'];
+                  foreach ($catValues as $cv) {
+                    $sel = ($u['preferred_category']===$cv)?' selected':'';
+                    $label = $CATEGORY_LABEL[$cv] ?? $cv;
+                    echo "<option value=\"$cv\"$sel>$label</option>";
+                  }
+                ?>
+              </select>
+              <button class="pw-btn pw-btn--primary" type="submit">Guardar</button>
+              <span class="pw-msg msg" aria-live="polite"></span>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accióncitas al pie (por si quieres tenerlas también en la vista web) -->
+      <div class="pw-actions">
+        <a href="<?= url('auth_forgot.php') ?>" class="pw-link pw-link--lime">
+          ¡Olvidé mi contraseña!
+          <svg viewBox="0 0 24 24" class="pw-i pw-i--arrow"><path d="M8 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="<?= url('logout.php') ?>" class="pw-link">
+          Cerrar sesión
+          <svg viewBox="0 0 24 24" class="pw-i pw-i--arrow"><path d="M8 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+
     </section>
-
-    <!-- Lista editable (cada fila abre su sheet correspondiente) -->
-    <ul class="list">
-      <li>
-        <span class="label">Nombre</span>
-        <span class="value js-name"><?=htmlspecialchars($user["name"])?></span>
-        <button class="edit" type="button" data-dialog-open="sheetName" aria-label="Editar nombre">✎</button>
-      </li>
-
-      <li>
-        <span class="label">Email</span>
-        <span class="value js-email"><?=htmlspecialchars($user["email"])?></span>
-        <button class="edit" type="button" data-dialog-open="sheetEmail" aria-label="Editar email">✎</button>
-      </li>
-
-      <li>
-        <span class="label">Contraseña</span>
-        <span class="value">********</span>
-        <button class="edit" type="button" data-dialog-open="sheetPassword" aria-label="Cambiar contraseña">✎</button>
-      </li>
-
-      <li>
-        <span class="label">Género</span>
-        <span class="value js-gender"><?=htmlspecialchars($user["gender"])?></span>
-        <button class="edit" type="button" data-dialog-open="sheetGender" aria-label="Seleccionar género">✎</button>
-      </li>
-
-      <li>
-        <span class="label">Número</span>
-        <span class="value js-phone"><?=htmlspecialchars($user["phone"])?></span>
-        <button class="edit" type="button" data-dialog-open="sheetPhone" aria-label="Editar teléfono">✎</button>
-      </li>
-    </ul>
-    
-    <!-- Enlaces y acciones varias -->
-    <div class="links">
-      <!-- Forgot password → abre sheetForgot -->
-      <button class="link" type="button" data-dialog-open="sheetForgot">¡Olvidé mi contraseña!</button>
-    </div>
-
-    <div class="actions">
-      <!-- Logout → abre sheetLogout (confirmación antes de salir) -->
-      <button class="btn btn-outline" type="button" data-dialog-open="sheetLogout">Cerrar sesión  ➝</button>
-    </div>
-
-    <div class="links mt">
-      <a class="link" href="/espacio-liminal/politicas.php">Política y privacidad</a>
-    </div>
   </main>
 
-  <?php @include __DIR__ . "/partials/nav.php"; /* include en 1 línea: nav inferior (mobile) / sticky (desktop) */ ?>
-
   <?php
-    /* Sheets (bottom sheets):
-       - Las incluyo “si existen” para no llenar de warnings en desarrollo.
-       - Los IDs dentro de cada archivo deben coincidir EXACTO con lo que abro arriba:
-         sheetName, sheetEmail, sheetEmailOTP, sheetPhone, sheetGender,
-         y las clásicas: sheetCategoria, sheetIdioma, sheetPassword, sheetForgot, sheetOTP, sheetLogout
-    */
-    foreach ([
-      // ya existentes:
-      'sheet_categoria','sheet_idioma','sheet_password','sheet_forgot','sheet_otp','sheet_logout',
-      // nuevos:
-      'sheet_name','sheet_email','sheet_email_otp','sheet_phone','sheet_gender'
-    ] as $s) { $p = __DIR__ . "/sheets/$s.php"; if (file_exists($p)) include $p; }
-  ?>  
+/* =========================================================================
+   NAV INFERIOR (perfil editar) — versión blindada y comentada a fuego
+   ---------------------------------------------------------------------
+   - $active: por si alguien no lo ha seteado arriba, lo dejo en 'perfil' para
+     que pinte la pestaña correcta y no me salte nada.
+   - function_exists('url'): si todavía no cargaron el bootstrap, me lo traigo
+     yo solito para tener url(), asset(), redirect(), etc. y no cascar.
+   - require_once: así me aseguro de que la nav se incluye una única vez,
+     aunque por despiste la llamen dos veces desde la misma vista.
+   - __DIR__: ruta ABSOLUTA de sistema (no depende del dominio ni subcarpeta),
+     por eso esto NUNCA se rompe al subir a producción.
+   ========================================================================= */
+
+$active = $active ?? 'perfil'; // por defecto, esta vista es “perfil”
+
+// Cinturón y tirantes: si aún no existen los helpers de URL, cargo el bootstrap.
+if (!function_exists('url')) {
+  require_once __DIR__ . '/config/bootstrap.php';
+}
+
+// Y ahora sí, pincho la nav inferior una sola vez.
+require_once __DIR__ . '/partials/nav.php';
+  ?>
 </body>
 </html>

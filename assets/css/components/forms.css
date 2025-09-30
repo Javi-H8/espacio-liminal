@@ -1,3 +1,21 @@
-﻿.form label{display:grid;gap:6px;margin-bottom:12px;font-size:14px}
-.form input{background:#1b1b1b;border:1px solid var(--border);color:var(--txt);border-radius:12px;padding:12px}
-.form input::placeholder{color:#6f6f6f}
+﻿/* ============================================================================
+   FORMULARIOS — inputs, selects, textareas y mensajería
+   ============================================================================ */
+label{ font-size: var(--fs-14); color: var(--sub); margin-bottom: 6px; display:block }
+input, select, textarea{
+  width:100%; color: var(--txt); background: #111;
+  border:1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px; outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+}
+input::placeholder, textarea::placeholder{ color: #6f6f6f }
+input:focus, select:focus, textarea:focus{ box-shadow: var(--ring) }
+
+.form-row{ display:flex; flex-direction:column; gap:6px; margin-bottom: 12px }
+.form-actions{ display:flex; gap: 10px; align-items:center; flex-wrap:wrap }
+.form-help{ color: var(--muted); font-size: var(--fs-12) }
+
+.form-error{
+  color:#fff; background:#3a0f13; border:1px solid #5f1720;
+  border-radius: var(--radius); padding: 8px 10px; font-size: var(--fs-14);
+}

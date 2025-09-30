@@ -1,0 +1,40 @@
+/* ============================================================================
+   TIPOGRAFÍA (la “voz” de la web)
+   ----------------------------------------------------------------------------
+   - Tamaños y colores coherentes que repito por toda la web.
+   - Link acento lima y variantes de texto.
+   - Contenedor centrado reutilizable.
+   - Tarjetas/superficies base (reutilizables por todas las páginas).
+   ============================================================================ */
+
+/* Enlaces “marca de la casa” */
+a.link{
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+a.link:hover{ text-decoration: underline; }
+
+/* Tonos de texto */
+small, .muted{ color: var(--muted); }
+
+/* Contenedor centrado, sin complicaciones */
+.container{
+  width:100%;
+  max-width: var(--container-w);
+  margin:0 auto;
+  padding: 0 12px;
+}
+
+/* Superficies/tarjetas base reutilizables */
+.card{
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+}
+.surface{
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+}

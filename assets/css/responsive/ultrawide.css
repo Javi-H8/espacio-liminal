@@ -1,0 +1,27 @@
+/* ============================================================================
+   RESPONSIVE · ULTRAWIDE (monitores muy grandes o 4K)
+   ----------------------------------------------------------------------------
+    En pantallas enormes no quiero “líneas kilométricas”, así que:
+      - Limito anchuras de texto.
+      - Dejo que las tarjetas respiren un poquito más.
+   ============================================================================ */
+
+@media (min-width: 1680px){
+  .home, .pw-shell, .pw-head__inner{ max-width: calc(var(--container-w) + 80px); }
+  .home-hero__text h1{ font-size: 38px; }
+  .blocks{ gap: 32px; }
+}
+
+@media (min-width: 1920px){
+  /* Si te da por poner una imagen/ilustración en el hero derecho, aquí tienes sitio */
+  .home-hero{ grid-template-columns: 1fr 1fr; }
+
+  /* Aún así no me paso con el texto largo, que cansa la vista */
+  .home-hero__text .lead{ max-width: 72ch; }
+}
+
+@media (min-width: 2560px){
+  /* En 2K/4K hago que el layout no parezca perdido en el desierto */
+  .home, .pw-shell, .pw-head__inner{ max-width: calc(var(--container-w) + 160px); }
+  .home-hero__text h1{ font-size: 40px; }
+}

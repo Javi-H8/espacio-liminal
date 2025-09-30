@@ -1,37 +1,41 @@
 /* ==========================================================================
-   Página: Home Dashboard (mobile-first)
-   Idea: estilos propios de la home. El contenedor y las columnas “gordas”
-   se resuelven en responsive/desktop.css para no mezclar capas.
+   HOME DASH (la “home” tipo panel con tarjetas y bloques)
+   --------------------------------------------------------------------------
+   Lo que hago aquí:
+   - Mantengo la estructura que ya venías usando (cards, acciones, etc.)
+   - Añado “suelo” para que la nav inferior NO tape nada (muy importante).
+   - Dejo sombras y bordes finos para que respire como el “perfil”.
+   - Todo mobile-first y luego tablet/desktop con lo justo.
    ========================================================================== */
 
-/* Contenedor de la home: rejilla simple y respiración base.
-   (El centrado y el número de columnas de escritorio vive en desktop.css) */
+/* Contenedor principal de la home tipo dashboard
+   - OJO al padding-bottom: 64px (nav) + aire + safe-area del iPhone.
+   - Así no se nos queda el último bloque escondido debajo de la nav. */
 .home-dash{
-  display: grid;
-  gap: 16px;     /* separación vertical entre bloques principales */
-  padding: 12px; /* margen interior cómodo en móvil */
-  margin: 0 auto;/* se mantiene centrado cuando desktop fija max-width */
+  display: grid;               /* rejilla sencillita vertical */
+  gap: 16px;                   /* espacio entre bloques principales */
+  padding: 12px;               /* respiro lateral estándar */
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  margin: 0 auto;              /* por si luego limitamos el ancho en desktop */
 }
 
-/* ---------- Welcome / puntos ---------- */
+/* ---------- Cabecera de bienvenida / puntos ---------- */
 
-/* La tarjeta de bienvenida usa el patrón .card, aquí solo ajusto relleno. */
 .hd-welcome.card{
-  padding: 16px 16px 14px; /* un pelín más contenido en la parte baja */
+  /* card con padding algo más generoso (pero sin pasarse) */
+  padding: 16px 16px 14px;
 }
 
-/* Eyebrow/encabezado pequeño con énfasis de marca en el span. */
+/* “Hola Javier” (o lo que toque), con acento en el nombre */
 .hd-eyebrow{
   color: #eaeaea;
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 2px;
 }
-.hd-eyebrow span{
-  color: var(--accent);
-}
+.hd-eyebrow span{ color: var(--accent) }
 
-/* Etiqueta de localización/sitio: pastilla ligera con borde. */
+/* Chip de ubicación/ámbito (Madrid, etc.) */
 .hd-place{
   display: inline-block;
   margin-bottom: 10px;
@@ -43,64 +47,59 @@
   font-size: 12px;
 }
 
-/* Bloque de puntos: fila superior con totales y barra de progreso simple. */
-.hd-points{ margin-top: 6px; }
+/* Bloque de puntos / progreso */
+.hd-points{ margin-top: 6px }
+.hd-row{ display: flex; justify-content: space-between; align-items: center }
 
-.hd-row{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
+/* Puntos actuales y total (con algo de “peso”) */
 .hd-current{
   color: var(--accent);
   font-weight: 800;
   font-size: 18px;
-  letter-spacing: .02em; /* puntito de claridad en numeraciones */
+  letter-spacing: .02em;
 }
-
 .hd-sum{
   color: #fff;
   font-weight: 800;
   opacity: .9;
 }
 
-/* Barra de progreso: base neutra + relleno con degradado “energético”. */
+/* Barra de progreso con relleno degradado
+   - Bordes redondos para look moderno y limpio */
 .hd-bar{
   height: 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: #141414;
   margin: 8px 0 6px;
-  overflow: hidden; /* oculta el rebose del relleno redondeado */
+  overflow: hidden;            /* que el fill no se salga del radius */
 }
 .hd-bar__fill{
-  display: block;
-  height: 100%;
+  display: block; height: 100%;
   background: linear-gradient(90deg, #baff00, #8cff00);
-  border-right: 1px solid #d7ff53; /* marca el “corte” del avance */
-  /* El ancho lo fija el HTML (style="width: 42%") o JS. */
+  border-right: 1px solid #d7ff53; /* remarca el “avance” con un cortecito */
 }
 
-/* ---------- Acciones rápidas ---------- */
+/* ---------- Acciones rápidas (tarjetas que llevan a otra parte) ---------- */
 
-/* Rejilla 1 columna en móvil; se escala en breakpoints. */
 .hd-actions{
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr; /* en móvil, 1 por fila */
   gap: 12px;
   margin-top: 10px;
 }
 
-/* Tarjeta de acción: usa variables de tema y refuerza “toque” en hover. */
+/* Tarjeta base
+   - La hago clicable (enlace/botón) pero sin parecer “botón web 2005” */
 .hd-card{
   display: block;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px 14px 12px;
-  color: inherit;          /* respeta el color de texto del contexto */
-  text-decoration: none;   /* por si vienen como <a> */
+  color: inherit;              /* que herede el color del texto */
+  text-decoration: none;       /* fuera subrayado si es <a> */
+  box-shadow: 0 8px 26px rgba(0,0,0,.26); /* sombrita fina para flotar */
 }
 .hd-card__head{
   display: flex;
@@ -113,55 +112,35 @@
   font-size: 16px;
   color: var(--accent);
 }
-.hd-arrow{
-  color: var(--accent);
-  font-weight: 800;
-}
-.hd-note{
-  margin: 6px 0 0;
-  color: #bdbdbd;
-  font-size: 12px;
-}
-.hd-card:hover{ background: #1a1a1a; }
+.hd-arrow{ color: var(--accent); font-weight: 800 } /* flechita o chevron */
+.hd-note{ margin: 6px 0 0; color: #bdbdbd; font-size: 12px }
+.hd-card:hover{ background: #1a1a1a }               /* hover sutil */
+.hd-card--wide{ grid-column: 1 }                    /* en tablet/desk la ensanchamos */
 
-/* Variante ancha: por defecto ocupa la fila completa (mobile). */
-.hd-card--wide{ grid-column: 1; }
+/* ---------- Recomendaciones / “para ti” ---------- */
 
-/* ---------- Recomendaciones ---------- */
-
-.hd-recos{
-  margin: 14px 0 18px;
-}
+.hd-recos{ margin: 14px 0 18px }
 .hd-recos__head{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 2px;
 }
-.hd-recos h3{ margin: 0; }
+.hd-recos h3{ margin: 0 }
 
-/* ---------- Estados de movimiento / accesibilidad ---------- */
-
-/* Si el usuario pide menos movimiento, se evitan animaciones. */
+/* ---------- Accesibilidad: si el user pide menos animación, se la doy ---------- */
 @media (prefers-reduced-motion: reduce){
-  .hd-card, .hd-bar__fill{ transition: none !important; }
+  .hd-card, .hd-bar__fill{ transition: none !important }
 }
 
-/* ---------- Breakpoints ---------- */
+/* ---------- Breakpoints (tablet/desktop) ---------- */
 
-/* Tablet: dos columnas para acciones y las “anchas” ocupan la fila entera. */
+/* En tablet meto 2 columnas para las tarjetas */
 @media (min-width: 768px){
-  .hd-actions{
-    grid-template-columns: 1fr 1fr;
-  }
-  .hd-card--wide{
-    grid-column: 1 / -1;  /* se extiende a lo ancho de la rejilla */
-  }
+  .hd-actions{ grid-template-columns: 1fr 1fr }
+  .hd-card--wide{ grid-column: 1 / -1 } /* la “wide” ocupa las dos */
 }
 
-/* Desktop: pequeños ajustes de densidad.
-   (Ojo: el “layout gordo” de dos columnas + nav sticky vive en desktop.css) */
+/* En desktop, un pelín más de aire en tarjetas */
 @media (min-width: 1024px){
-  .hd-welcome.card{ padding: 18px; }
-  .hd-card{ padding: 16px; }
+  .hd-welcome.card{ padding: 18px }
+  .hd-card{ padding: 16px }
 }

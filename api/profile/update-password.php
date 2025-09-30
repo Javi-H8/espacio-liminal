@@ -1,50 +1,40 @@
 <?php
-require_once __DIR__ . '/../../config/bootstrap.php';
-require_once __DIR__ . '/../../config/session.php';
-if (session_status() === PHP_SESSION_NONE) session_start();
+/**
+ * Cambiar CONTRASEÑA con la actual (flujo dentro de perfil)
+ * - Entrada JSON: { csrf, current, new, new2 }
+ * - Verifico la actual, seteo hash Argon2id, borro remember-tokens, regen id
+ */
+declare(strict_types=1);
+require_once __DIR__ . '/../config/bootstrap.php';
+require_once __DIR__ . '/../config/session.php';
+header('Content-Type: application/json; charset=utf-8');
 
-if (empty($_SESSION['user_id'])) { http_response_code(401); json_out(['ok'=>false,'error'=>'No autenticado']); }
+$uid = auth_user_id(); if (!$uid) json_out(['ok'=>false,'error'=>'No autorizado'], 401);
+$in = json_decode(file_get_contents('php://input'), true) ?? [];
+csrf_verify($in['csrf'] ?? null);
 
-$data = json_decode(file_get_contents('php://input'), true) ?? [];
-$old  = (string)($data['old'] ?? '');
-$n1   = (string)($data['n1']  ?? '');        // nueva contraseña
-$csrf = $data['csrf'] ?? null;
+$cur = (string)($in['current'] ?? '');
+$new = (string)($in['new'] ?? '');
+$rep = (string)($in['new2'] ?? '');
 
-if (function_exists('csrf_verify')) { csrf_verify($csrf); }
-if (function_exists('rate_limiter')) { rate_limiter('password_change', 10, 60); }
+if ($new !== $rep) json_out(['ok'=>false,'error'=>'Las nuevas no coinciden'], 400);
+if (mb_strlen($new) < 8) json_out(['ok'=>false,'error'=>'Mínimo 8 caracteres'], 400);
 
-if (strlen($n1) < 8) { http_response_code(400); json_out(['ok'=>false,'error'=>'La contraseña debe tener al menos 8 caracteres']); }
-
-$userId = (int)$_SESSION['user_id'];
-
-/* 1) Traer hash actual del usuario */
-$stmt = $mysqli->prepare("SELECT password_hash FROM users WHERE id=? LIMIT 1");
-if (!$stmt) { http_response_code(500); json_out(['ok'=>false,'error'=>'DB prepare 1']); }
-$stmt->bind_param('i', $userId);
-$stmt->execute();
-$stmt->bind_result($hashActual);
-$found = $stmt->fetch();
-$stmt->close();
-
-if (!$found || !$hashActual) {
-  http_response_code(404);
-  json_out(['ok'=>false,'error'=>'Usuario no encontrado']);
+$row = db_exec("SELECT password_hash FROM users WHERE id=?", 'i', [$uid])[0] ?? null;
+if (!$row || !password_verify($cur, $row['password_hash'])) {
+  json_out(['ok'=>false,'error'=>'La contraseña actual no es correcta'], 401);
 }
 
-/* 2) Verificar contraseña actual */
-if (!check_pass($old, $hashActual)) {
-  http_response_code(400);
-  json_out(['ok'=>false,'error'=>'Contraseña actual incorrecta']);
-}
+$hash = hash_pass($new);
+$ok = db_exec_nonquery(
+  "UPDATE users SET password_hash=?, updated_at=? WHERE id=?",
+  'ssi', [$hash, date('Y-m-d H:i:s'), $uid]
+)['ok'];
 
-/* 3) Generar nuevo hash y guardar */
-$nuevoHash = hash_pass($n1);
-$stmt = $mysqli->prepare("UPDATE users SET password_hash=? WHERE id=?");
-if (!$stmt) { http_response_code(500); json_out(['ok'=>false,'error'=>'DB prepare 2']); }
-$stmt->bind_param('si', $nuevoHash, $userId);
-$ok = $stmt->execute();
-$stmt->close();
+if (!$ok) json_out(['ok'=>false,'error'=>'No se pudo actualizar'], 500);
 
-if ($ok) json_out(['ok'=>true]);
-http_response_code(500);
-json_out(['ok'=>false,'error'=>'No se pudo actualizar']);
+// Seguridad extra: revoco remembers y roto sesión
+db_exec_nonquery("DELETE FROM auth_tokens WHERE user_id=?", 'i', [$uid]);
+if (session_status() === PHP_SESSION_ACTIVE) session_regenerate_id(true);
+
+json_out(['ok'=>true]);

@@ -1,123 +1,37 @@
-﻿/* ==========================================================================
-   Desktop layout (≥1024px)
-   Objetivo: mejorar lectura y organización sin romper el mobile-first.
-   ========================================================================== */
+﻿/* ============================================================================
+   RESPONSIVE · DESKTOP
+   ----------------------------------------------------------------------------
+    Aquí remato el layout cuando ya tenemos “anchura de escritorio”.
+   - Mantengo la NAV inferior SIEMPRE (me lo pediste tal cual).
+   - Centro contenedores a 1200px y escalo cuadriculita.
+   ============================================================================ */
 
 @media (min-width: 1024px){
+  /* Contenedores centrados y con el ancho que definimos en :root */
+  .home, .pw-shell, .pw-head__inner{ max-width: var(--container-w); margin: 0 auto; }
 
-  /* ----------
-     Contenedor del dashboard (index.php)
-     Se centra y se reparte en 2 columnas: contenido principal + sidebar.
-     ---------- */
-  .home-dash{
-    max-width: 1100px;              /* ancho cómodo para escritorio medio */
-    margin-inline: auto;            /* centrado horizontal */
-    display: grid;
-    grid-template-columns: 1fr 340px;  /* 1fr = main, 340px = columna derecha */
-    gap: 24px;                      /* respiración entre columnas */
-    padding-inline: 24px;           /* margencito lateral para que no pegue a borde */
-  }
+  /* Grid de bloques a 3 columnas (queda muy chulo en escritorio) */
+  .blocks{ grid-template-columns: repeat(3, 1fr); }
 
-  /* ----------
-     Acciones rápidas
-     En escritorio conviene 2 columnas para no alargar de más en vertical.
-     ---------- */
-  .hd-actions{
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
+  /* El título del hero puede engordar sin romper */
+  .home-hero__text h1{ font-size: 34px; }
 
-  /* ----------
-     Tipografía algo más grande en títulos del dashboard
-     Mantener clamp para adaptar según viewport.
-     ---------- */
-  .home-dash h1,
-  .home-dash .title-xl{
-    font-size: clamp(18px, 2vw, 24px);
-    line-height: 1.2;
-  }
+  /* Shell “pw” a 2 columnas (avatar | contenido) si aplica en las páginas de perfil */
+  .pw-shell{ grid-template-columns: 320px 1fr; gap: 20px; }
 
-  /* ----------
-     Barra de navegación inferior → arriba bajo la topbar en desktop
-     Se usa sticky para que acompañe al hacer scroll.
-     ---------- */
-  .nav{
-    position: sticky;    /* queda pegada al hacer scroll */
-    top: 56px;           /* altura de la topbar */
-    bottom: auto;
-    height: 56px;
-    z-index: 15;         /* por debajo de la topbar, por encima del contenido */
-
-    /* borde y fondo base (sin blur) como fallback universal */
-    border-top: 0;
-    border-bottom: 1px solid var(--border);
-    background: #1a1a1a;
-
-    /* en desktop la distribución se hace horizontal a igualdad de espacio */
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    align-items: center;
-  }
-
-  /* Activar desenfoque si el navegador lo soporta */
-  @supports (backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px)){
-    .nav{
-      background: rgba(22,22,22, .8);
-      -webkit-backdrop-filter: blur(6px);
-      backdrop-filter: blur(6px);
-    }
-  }
-
-  /* ----------
-     Lista interna de la nav (si existe en el HTML)
-     Si no existe .nav__list, este bloque no rompe nada.
-     ---------- */
-  .nav__list{
-    max-width: 1100px;   /* alineada con el contenedor del dashboard */
-    margin: 0 auto;
-    height: 56px;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    align-items: center;
-    gap: 8px;
-    padding-inline: 12px;
-  }
-
-  /* ----------
-     Compensación de barras pegadas
-     - Por defecto: solo topbar (56px).
-     - Si <main> lleva .has-sticky-nav: compensa topbar + nav (112px).
-     ---------- */
-  main{
-    margin-top: 56px;
-  }
-  main.has-sticky-nav{
-    margin-top: 112px;        /* 56 + 56 */
-    scroll-margin-top: 112px; /* para anclajes tipo #seccion */
-  }
+  /* Topbar y head con un pelín más de aire */
+  .topbar{ border-bottom-color: rgba(255,255,255,.06); }
+  .pw-head__inner{ padding: 14px 16px; }
 }
 
-/* ==========================================================================
-   Desktop “grande” (≥1280px)
-   Se da un poco más de aire y una sidebar algo más ancha.
-   ========================================================================== */
+/* ===== 1280px: sobremesa normalito con un poquito más de confort ===== */
 @media (min-width: 1280px){
-  .home-dash{
-    max-width: 1280px;
-    grid-template-columns: 1fr 380px;  /* sidebar un pelín más generosa */
-    gap: 28px;
-    padding-inline: 28px;
-  }
+  .home-hero__text h1{ font-size: 36px; }
+  .home-cta .button{ padding: 12px 16px; } /* el call to action no se queda canijo */
+}
 
-  .hd-actions{
-    grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 columnas si cabe */
-    gap: 18px;
-  }
-
-  .nav__list{
-    max-width: 1280px;
-  }
+/* ===== 1440px: escritorio amplio (sin pasarnos de mamotreto) ===== */
+@media (min-width: 1440px){
+  .home-hero__text .lead{ max-width: 70ch; } /* leo cómodo y no hago líneas eternas */
+  .blocks{ gap: 28px; }                       /* separo un pelín las tarjetas */
 }

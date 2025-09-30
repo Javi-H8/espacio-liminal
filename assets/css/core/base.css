@@ -1,0 +1,32 @@
+/* =========================================================================
+   BASE (reset suave + estilos base) — esto faltaba y login lo pedía.
+   - Quito márgenes raros de elementos.
+   - Defino contenedores estándar y tarjetas base.
+   ========================================================================= */
+html:focus-within{ scroll-behavior:smooth }
+img,svg,video{ display:block; max-width:100%; height:auto }
+h1,h2,h3,p,ul,ol,dl,figure{ margin:0 0 var(--sp-12) }
+
+.container{ width:100%; max-width: var(--container-w); margin:0 auto; padding: 0 var(--sp-12) }
+.container--page{ padding-top: var(--sp-8) } /* coherente con tu profile.css */
+
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+}
+
+.surface{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.muted{ color: var(--muted) }
+
+.hidden{ display:none !important }
+
+hr{ border:0; height:1px; background: var(--border); margin: var(--sp-16) 0 }
+
+:focus-visible{ outline: none; box-shadow: var(--ring) }

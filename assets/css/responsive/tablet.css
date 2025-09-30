@@ -1,6 +1,42 @@
-﻿@media (min-width: 768px){
-  .container{padding:24px 24px 120px}
-  .topbar h1{font-size:18px}
-  .value{font-size:15px}.label{font-size:13px}
-  .container--page{max-width:960px;margin:0 auto}
+﻿/* ============================================================================
+   RESPONSIVE · TABLET (y móviles “anchitos”)
+   ----------------------------------------------------------------------------
+    Objetivo:
+      1) Que el hero deje de apilarse cuando hay ancho suficiente.
+      2) Que el grid de “bloques” pase de 1 → 2 columnas suavecito.
+   Breakpoints útiles:
+     · 480px: móviles grandes en vertical.
+     · 640px: tablet mini / móvil apaisado.
+     · 768px: tablet normal (iPad vertical).
+   ============================================================================ */
+
+/* ===== 480px: tipografías y respiración del hero ===== */
+@media (min-width: 480px){
+  .home-hero__text h1{ font-size: 30px; }   /* un pelín más de presencia */
+  .home-hero__text .lead{ max-width: 60ch; }
+  .home-cta{ gap: 12px; }                   /* botones con más hueco */
+}
+
+/* ===== 640px: hero en 2 columnas y grid a 2 cols ===== */
+@media (min-width: 640px){
+  /* Hero a dos columnas (texto | tarjeta / ilustración) */
+  .home-hero{
+    grid-template-columns: 1.1fr 1fr;       /* texto domina un pelín */
+    align-items: stretch;
+  }
+  /* Seguridad anti-desbordes en hijos del grid */
+  .home-hero > *{ min-width: 0; }
+
+  /* Grid de bloques (acciones rápidas) */
+  .blocks{ grid-template-columns: repeat(2, 1fr); }
+
+  /* Si usas pw-* en más páginas, que los formularios no se apilen tanto */
+  .pw-form-grid{ grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* ===== 768px: tablet “real” ===== */
+@media (min-width: 768px){
+  .home-hero__text h1{ font-size: 32px; }
+  .home{ padding: 12px 16px 0; }            /* un pelín más de padding lateral */
+  .pw-head__inner{ padding: 12px 16px; }
 }

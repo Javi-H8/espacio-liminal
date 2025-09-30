@@ -1,7 +1,62 @@
-﻿:root{
-  --bg:#0f0f0f; --card:#161616; --txt:#e6e6e6; --sub:#a1a1a1; --border:#262626;
-  --accent:#C6FF00; --radius:16px;
+﻿/* ============================================================================
+   VARIABLES BASE (colores, tipografías, radios, sombras, escalas, etc.)
+   ----------------------------------------------------------------------------
+   - La identidad visual vive aquí. Si mañana cambiamos el acento, toco esto y ya.
+   - Estilo oscuro elegante con acento lima (rollo “liminal” que te mola).
+   ============================================================================ */
+:root{
+  /* Paleta en oscuro */
+  --bg:        #0f0f0f;   /* fondo global mega oscuro */
+  --card:      #161616;   /* tarjetas/controles */
+  --txt:       #e7e7e7;   /* texto base */
+  --sub:       #bdbdbd;   /* texto secundario */
+  --muted:     #9a9a9a;   /* ayudas, placeholders */
+  --border:    #262626;   /* bordecito sutil */
+  --accent:    #C6FF00;   /* el lima liminal jeje */
+
+  /* Estados por si los necesitas */
+  --ok:        #22c55e;   /* éxito */
+  --warn:      #f59e0b;   /* aviso */
+  --err:       #ef4444;   /* error */
+
+  --sp-4: 4px;
+  --sp-6: 6px;
+  --sp-8: 8px;
+  --sp-10: 10px;
+  --sp-12: 12px;
+  --sp-14: 14px;
+  --sp-16: 16px;
+  --sp-20: 20px;
+  --sp-24: 24px;
+  --sp-28: 28px;
+  --sp-32: 32px;
+  --sp-40: 40px;
+  --sp-48: 48px;
+
+  /* Forma y profundidad */
+  --radius:    16px;
+  --radius-lg: 20px;
+  --shadow-1:  0 1px 1px rgba(0,0,0,.45), 0 10px 28px rgba(0,0,0,.28);
+  --shadow-2:  0 1px 1px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.35);
+  --ring:      0 0 0 3px rgba(198,255,0,.22); /* focus accesible que no molesta */
+
+  /* Tipografía: sin inventos raros para que no pete en ningún lado */
+  --font: system-ui, -apple-system, Segoe UI, Inter, Roboto, Arial, sans-serif;
+
+  /* Tamaños (escala que usaremos en toda la web) */
+  --fs-12: 12px; --fs-14: 14px; --fs-16: 16px; --fs-18: 18px;
+  --fs-20: 20px; --fs-24: 24px; --fs-28: 28px; --fs-32: 32px;
+
+  /* Medidas útiles */
+  --container-w: 1200px; /* ancho máximo de page en desktop */
+  --gap: 24px;           /* gap estándar entre bloques */
 }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:system-ui,Segoe UI,Roboto,Arial}
-a{color:var(--accent);text-decoration:none}
+
+/* Setup global mínimo para que todo herede color y fondo base */
+html,body{
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--font);
+  font-size: var(--fs-16);
+  line-height: 1.4;
+}

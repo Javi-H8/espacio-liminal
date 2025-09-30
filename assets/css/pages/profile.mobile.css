@@ -1,0 +1,9 @@
+/* ============================================================================
+   MOBILE (ajustes cuando la pantalla es más peque) — sin dramas
+   ============================================================================ */
+@media (max-width: 979px){
+  .pw-shell{ grid-template-columns: 1fr; }
+  .pw-left{ position: static; }
+  .pw-form-grid{ grid-template-columns: 1fr; }
+  .pw-head__inner{ flex-direction: column; align-items: flex-start; gap:6px; }
+}

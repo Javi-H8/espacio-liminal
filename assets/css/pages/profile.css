@@ -1,2 +1,97 @@
-﻿/* página de perfil */
-.container--page{padding-top:8px}
+﻿/* ============================================================================
+   PROFILE BASE (pw-*) — tarjetas, listas, inputs y layout general
+   ----------------------------------------------------------------------------
+   - Lo uso para perfil, perfil_editar y como base visual del resto.
+   - Con esto todas las páginas tienen la misma “pinta” de tarjeta y grid.
+   ============================================================================ */
+
+/* Shell general: 1 col en móvil, 2 cols en desktop (avatar | contenido) */
+.pw-shell{
+  max-width: var(--container-w);
+  margin: 0 auto;
+  padding: 8px 12px 0;
+  display: grid; gap: 16px;
+}
+@media (min-width: 980px){ .pw-shell{ grid-template-columns: 320px 1fr; gap: 20px } }
+
+/* Header */
+.pw-head{ border-bottom: 1px solid var(--border); background: #121212; }
+@supports (backdrop-filter: blur(6px)){
+  .pw-head{ background: rgba(18,18,18,.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+}
+.pw-head__inner{
+  max-width: var(--container-w); margin:0 auto;
+  padding: 10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.pw-title{ font-size: 20px; }
+.pw-bread{ color: var(--muted); font-size: 13px; }
+.pw-bread a{ color: var(--accent); }
+
+/* Tarjetas base */
+.pw-card{
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-1);
+  padding: 16px;
+}
+
+/* Avatar */
+.pw-avatar{ display:grid; place-items:center; margin-bottom: 10px; }
+.pw-avatar__ring{
+  width: 128px; height: 128px; border-radius: 999px;
+  border: 2px solid #2a2a2a; overflow: hidden;
+  box-shadow: inset 0 0 0 3px rgba(198,255,0,.08);
+}
+.pw-avatar__ring img{ width:100%; height:100%; object-fit: cover; }
+
+/* Inputs & selects coherentes en todo (heredables para auth también) */
+.pw-input, .pw-select, .pw-file, .pw-textarea{
+  width:100%; color: var(--txt); background: #111;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.pw-input::placeholder, .pw-textarea::placeholder{ color:#6f6f6f; }
+.pw-input:focus, .pw-select:focus, .pw-file:focus, .pw-textarea:focus{ box-shadow: var(--ring); }
+
+/* Botones y enlaces integrados */
+.pw-btn{
+  --bg: var(--accent); --fg: #0f0f0f;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:10px 14px; border:0; border-radius: var(--radius);
+  background: var(--bg); color: var(--fg); font-weight: 700; cursor:pointer;
+  transition: transform .06s ease, filter .2s ease;
+}
+.pw-btn:active{ transform: translateY(1px) }
+.pw-btn--primary{ --bg: var(--accent); --fg: #0f0f0f; }
+.pw-btn--lime{ --bg: var(--accent); --fg: #0f0f0f; }
+.pw-link{ color:#ddd; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.pw-link--lime{ color: var(--accent); }
+
+/* Grupos/Items */
+.pw-group{ margin-bottom: 18px; }
+.pw-group__title{ font-size: 16px; color:#dcdcdc; margin: 2px 2px 8px; }
+
+.pw-item{ border:1px solid var(--border); border-radius: var(--radius); overflow:hidden; background: var(--card); }
+.pw-item + .pw-item{ margin-top: 10px; }
+.pw-item__row{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; padding: 12px 16px; }
+.pw-item__text{ display:grid; gap:2px; }
+.pw-label{ color: var(--sub); font-size: 14px; }
+.pw-value{ font-weight: 600; }
+
+.pw-icon-btn{
+  display:grid; place-items:center;
+  width:36px; height:36px; border-radius:12px; border:1px solid var(--border);
+  background:#121212; color:#dcdcdc; cursor:pointer;
+}
+.pw-i{ width:18px; height:18px; }
+.pw-i--arrow{ width:14px; height:14px; }
+
+/* Panes de edición inline */
+.pw-pane{ border-top:1px solid var(--border); background:#121212; padding: 12px 16px; }
+.pw-form-inline{ display:flex; gap:10px; flex-wrap:wrap; }
+.pw-form-grid{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
+.pw-form__actions{ display:flex; gap:10px; align-items:center; }
+
+/* Columnas web: izquierda avatar / derecha campos */
+.pw-left{ position:sticky; top:64px; align-self: start; }
+.pw-right{ display:grid; gap: 18px; }
+.pw-actions{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; padding: 2px 4px; }

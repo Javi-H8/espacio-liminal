@@ -1,0 +1,9 @@
+/* ============================================================================
+   DESKTOP FINO (solo retoquitos para respirar mejor)
+   ============================================================================ */
+@media (min-width: 980px){
+  .pw-head__inner{ padding: 12px; }
+  .pw-avatar__ring{ width: 144px; height: 144px; }
+  .pw-title{ font-size: 22px; }
+  .pw-item__row{ padding: 14px 18px; }
+}

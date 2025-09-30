@@ -1,25 +1,44 @@
 <?php
-require_once __DIR__ . '/../../config/bootstrap.php';
-require_once __DIR__ . '/../../config/session.php';
-session_start();
+/**
+ * Paso 1: Solicitar cambio de EMAIL → generamos código y guardamos petición
+ * - Entrada JSON: { csrf, new_email }
+ * - Respuesta: ok y (si APP_ENV=dev) te devuelvo el código para probar.
+ */
+declare(strict_types=1);
+require_once __DIR__ . '/../config/bootstrap.php';
+require_once __DIR__ . '/../config/session.php';
+header('Content-Type: application/json; charset=utf-8');
 
-$data = json_decode(file_get_contents('php://input'), true) ?? [];
-$email = trim($data['email'] ?? '');
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-  http_response_code(400); json_out(['ok'=>false,'error'=>'Email no válido']);
+$uid = auth_user_id(); if (!$uid) json_out(['ok'=>false,'error'=>'No autorizado'], 401);
+$in = json_decode(file_get_contents('php://input'), true) ?? [];
+csrf_verify($in['csrf'] ?? null);
+
+$newEmail = strtolower(trim((string)($in['new_email'] ?? '')));
+if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+  json_out(['ok'=>false,'error'=>'Email no válido'], 400);
 }
 
-$userId = 1;
+// ¿Ese email ya existe?
+$dup = db_exec("SELECT id FROM users WHERE email=?", 's', [$newEmail]);
+if ($dup) json_out(['ok'=>false,'error'=>'Ese email ya está en uso'], 409);
 
-/* genera código 4 dígitos y guarda en sesión
-   (si prefieres DB, usa tu tabla password_otps como te indiqué antes) */
-$code = str_pad((string)random_int(0,9999), 4, '0', STR_PAD_LEFT);
-$_SESSION['email_change'] = [
-  'user_id' => $userId,
-  'email'   => $email,
-  'code'    => $code,
-  'exp'     => time()+600
-];
+// Limpio peticiones previas del mismo user & propósito
+db_exec_nonquery("DELETE FROM user_verifications WHERE user_id=? AND purpose='email_change'", 'i', [$uid]);
 
-/* aquí enviarías el email real; por ahora devolvemos el code en debug=false */
-json_out(['ok'=>true /*,'debug_code'=>$code*/ ]);
+$code   = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT); // 6 dígitos
+$token  = bin2hex(random_bytes(16)); // por si quieres también validar por link
+$expire = (new DateTime('+15 minutes'))->format('Y-m-d H:i:s');
+
+$ok = db_exec_nonquery(
+  "INSERT INTO user_verifications (user_id, purpose, target_value, code, token, expires_at, created_at)
+   VALUES (?,?,?,?,?, ?, NOW())",
+  'isssss', [$uid, 'email_change', $newEmail, $code, $token, $expire]
+)['ok'];
+
+if (!$ok) json_out(['ok'=>false,'error'=>'No pude generar el código'], 500);
+
+// TODO: aquí envías email/SMS al usuario con $code o un link con $token
+// Como estamos en dev, si quieres te lo devuelvo para depurar sin emails:
+$out = ['ok'=>true];
+if (is_dev()) $out['dev_code'] = $code;
+json_out($out);

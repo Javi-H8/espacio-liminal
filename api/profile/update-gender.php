@@ -1,15 +1,25 @@
 <?php
-require_once __DIR__ . '/../../config/bootstrap.php';
-require_once __DIR__ . '/../../config/session.php';
+/**
+ * Actualiza GÉNERO
+ * - Entrada JSON: { csrf, gender }
+ * - Permitimos: '', 'Masculino','Femenino','Otro'
+ */
+declare(strict_types=1);
+require_once __DIR__ . '/../config/bootstrap.php';
+require_once __DIR__ . '/../config/session.php';
+header('Content-Type: application/json; charset=utf-8');
 
-$data = json_decode(file_get_contents('php://input'), true) ?? [];
-$gender = trim($data['gender'] ?? '');
-$allowed = ['Masculino','Femenino','Sin especificar','Otro'];
-if (!in_array($gender, $allowed, true)) { http_response_code(400); json_out(['ok'=>false,'error'=>'Valor no válido']); }
+$uid = auth_user_id(); if (!$uid) json_out(['ok'=>false,'error'=>'No autorizado'], 401);
+$in = json_decode(file_get_contents('php://input'), true) ?? [];
+csrf_verify($in['csrf'] ?? null);
 
-$userId = 1;
-$stmt = $mysqli->prepare("UPDATE users SET gender=?, updated_at=NOW() WHERE id=?");
-$stmt->bind_param('si', $gender, $userId);
-$ok = $stmt->execute(); $stmt->close();
+$allowed = ['', 'Masculino', 'Femenino', 'Otro'];
+$gender  = (string)($in['gender'] ?? '');
+if (!in_array($gender, $allowed, true)) $gender = '';
 
-json_out(['ok'=>$ok ? true : false, 'gender'=>$gender]);
+$ok = db_exec_nonquery(
+  "UPDATE users SET gender=?, updated_at=? WHERE id=?",
+  'ssi', [$gender, date('Y-m-d H:i:s'), $uid]
+)['ok'];
+
+json_out(['ok'=>$ok], $ok?200:500);

@@ -1,25 +1,33 @@
-﻿/* ==========================================================================
-   Topbar pegada arriba, con fallback opaco y blur si hay soporte.
-   ========================================================================== */
+﻿/* ============================================================================
+   TOPBAR (barra superior pegadita)
+   ----------------------------------------------------------------------------
+   - Grid 48 | 1fr | 48 (atrás | título | acción) → sencillito y efectivo.
+   - Blur si el navegador lo soporta. Fallback sólido si no.
+   - Anchado forzado al 100% para que en emulaciones no “muerda” 1px.
+   - Z-index por encima de la nav para que no se solapen al hacer scroll.
+   ============================================================================ */
 
 .topbar{
   height: 56px;
   display: grid;
   grid-template-columns: 48px 1fr 48px; /* atrás | título | acción */
   align-items: center;
-  border-bottom: 1px solid var(--border);
+
   position: sticky;
   top: 0;
-  z-index: 20;                    /* por encima de la nav */
-  background: #1a1a1a;            /* fallback sin blur */
-}
+  left: 0; right: 0;     /* me aseguro de abarcar todo el ancho */
+  width: 100%;
+  z-index: 30;
 
-/* Activar desenfoque de fondo solo si el navegador lo soporta */
-@supports (backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px)){
+  padding-top: env(safe-area-inset-top);
+  border-bottom: 1px solid var(--border);
+  background: #1a1a1a; /* fallback sin blur */
+}
+@supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)){
   .topbar{
-    background: rgba(22,22,22, .6);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    background: rgba(22,22,22, .86);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
   }
 }
 
@@ -27,9 +35,21 @@
   font-size: 16px;
   justify-self: center;
   margin: 0;
+  text-align:center;
+  max-width: 70vw; /* títulos largos no empujan iconos */
+  white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
 }
-.topbar .back{
-  display: grid;
-  place-items: center;
-  color: var(--txt);
+
+.topbar .back, .topbar .action{
+  display: grid; place-items: center; color: var(--txt);
+  width: 48px; height: 56px;
+}
+.topbar .icon{ width:22px; height:22px; fill: currentColor; opacity:.92; }
+
+/* Variantes por si las necesitas */
+.topbar--no-border{ border-bottom:0 !important; }
+.topbar--solid{
+  background:#1a1a1a !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
 }

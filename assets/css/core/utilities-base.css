@@ -1,0 +1,3 @@
+/* Alias para compatibilidad: index.php pedía utilities-base.css.
+   Le suelto aquí lo mismo que utilities.css y fuera líos. */
+@import url("./utilities.css");

@@ -1,29 +1,29 @@
-﻿/* ==========================================================================
-   NAV (mobile-first)
-   Abajo fija en móvil, segura para notch, y con blur si está disponible.
-   En desktop se sobreescribe en responsive/desktop.css.
-   ========================================================================== */
-
+﻿/* ============================================================================
+   NAV INFERIOR (mobile-first pero visible SIEMPRE, también en desktop)
+   ----------------------------------------------------------------------------
+   ✅ Requisito de Javi: la nav tiene que aparecer en TODAS las páginas,
+      SIEMPRE abajo y durante TODA la página. Así que:
+      - La dejo fixed-bottom 100% en todos los breakpoints.
+      - Doy aire global con body.with-bottom-nav (lo tienes en reset.css).
+      - Safe-area iPhone para que no se corte con el notch.
+   ============================================================================ */
 .nav{
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 20;
+  position: fixed; left:0; right:0; bottom:0; z-index: 20;
 
-  /* layout */
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /* Layout de los 5 iconitos/textos */
+  display: grid; grid-template-columns: repeat(5, 1fr);
   align-items: center;
 
-  /* fondo y borde base (sin blur) para compatibilidad total */
+  /* Fondo y borde base (compatibilidad total sin blur) */
   background: #161616;
   border-top: 1px solid var(--border);
 
-  /* touch target y safe area en iOS */
+  /* Touch target y safe area (por si hay notch) */
   height: 64px;
-  padding: 4px 6px calc(4px + env(safe-area-inset-bottom));
+  padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px));
 }
 
-/* Si hay soporte, activar glass con desenfoque */
+/* Si el navegador soporta “glass” → activamos blur bonito */
 @supports (backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px)){
   .nav{
     background: rgba(22,22,22, .92);
@@ -32,17 +32,12 @@
   }
 }
 
+/* Item de navegación: icono + etiqueta */
 .nav__item{
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
-  color: #bdbdbd;
-  font-size: 12px;
-  text-align: center;
-  text-decoration: none;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 8px 6px;
+  color: #bdbdbd; font-size: 12px; text-align: center; text-decoration: none;
   outline: none;
 }
 .nav__item .icon{
@@ -52,23 +47,26 @@
 .nav__item:hover{ color:#e0e0e0; }
 .nav__item.is-active{ color: var(--accent); }
 
-/* Indicador inferior en el item activo */
+/* Indicador inferior del activo (la rayita que queda fetén) */
 .nav__indicator{
-  position: absolute;
-  bottom: 0; left: 20%; right: 20%;
-  height: 2px;
-  background: transparent;
-  border-radius: 2px;
+  position: absolute; bottom: 0; left: 20%; right: 20%;
+  height: 2px; background: transparent; border-radius: 2px;
 }
 .nav__item.is-active .nav__indicator{ background: var(--accent); }
 
-/* Enfoque visible con teclado (a11y) */
+/* Enfoque visible con teclado (accesibilidad) */
 .nav__item:focus-visible{
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 40%, transparent);
   border-radius: 10px;
 }
 
-/* Si el usuario prefiere menos animación, respetarlo */
+/* Si quieres autohide en alguna vista, añade .nav--autohide desde el HTML
+   (por defecto NO la oculto porque me has pedido que esté siempre visible). */
+.nav--autohide{ transition: transform .28s ease, opacity .2s ease; will-change: transform; }
+.nav--autohide.is-hidden{ transform: translateY(110%); opacity: .9; }
+
+/* Respeto accesibilidad: si el usuario prefiere menos animación, corto el rollo */
 @media (prefers-reduced-motion: reduce){
   .nav, .nav *{ transition: none !important; }
+  .nav--autohide, .nav--autohide.is-hidden{ transition: none !important; }
 }

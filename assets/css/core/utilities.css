@@ -1,4 +1,25 @@
-﻿.container{padding:16px 16px 96px}
-.muted{color:var(--sub);font-size:13px}
-.w-100{width:100%}.mt{margin-top:8px}
-.row{display:flex;align-items:center}.gap{gap:12px}.between{justify-content:space-between}
+﻿/* =========================================================================
+   UTILITIES — clasitas atómicas para rematar sin inventar la rueda
+   Si te hace falta un empujoncito en un sitio, tira de esto sin miedo.
+   ========================================================================= */
+.u-flex{ display:flex; }
+.u-flex-col{ display:flex; flex-direction:column; }
+.u-center{ display:grid; place-items:center; }
+.u-gap-8{ gap: var(--sp-8) }
+.u-gap-12{ gap: var(--sp-12) }
+.u-gap-16{ gap: var(--sp-16) }
+.u-gap-24{ gap: var(--sp-24) }
+.u-p-8{ padding: var(--sp-8) }
+.u-p-12{ padding: var(--sp-12) }
+.u-p-16{ padding: var(--sp-16) }
+.u-p-24{ padding: var(--sp-24) }
+.u-mb-8{ margin-bottom: var(--sp-8) }
+.u-mb-12{ margin-bottom: var(--sp-12) }
+.u-mb-16{ margin-bottom: var(--sp-16) }
+.u-mb-24{ margin-bottom: var(--sp-24) }
+.u-text-sub{ color: var(--sub) }
+.u-text-center{ text-align:center }
+.u-w-full{ width:100% }
+.u-maxw-520{ max-width:520px }
+.u-rounded{ border-radius: var(--radius) }
+.u-rounded-lg{ border-radius: var(--radius-lg) }

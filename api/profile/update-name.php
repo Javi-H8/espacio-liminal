@@ -1,14 +1,29 @@
 <?php
-require_once __DIR__ . '/../../config/bootstrap.php';
-require_once __DIR__ . '/../../config/session.php';
+/**
+ * Actualiza el NOMBRE del usuario logueado
+ * - Entrada JSON: { csrf, name }
+ * - Validación básica y update
+ */
+declare(strict_types=1);
+require_once __DIR__ . '/../config/bootstrap.php';
+require_once __DIR__ . '/../config/session.php';
+header('Content-Type: application/json; charset=utf-8');
 
-$data = json_decode(file_get_contents('php://input'), true) ?? [];
-$name = trim($data['name'] ?? '');
-if ($name === '') { http_response_code(400); json_out(['ok'=>false,'error'=>'Nombre requerido']); }
+$uid = auth_user_id();
+if (!$uid) json_out(['ok'=>false,'error'=>'No autorizado'], 401);
 
-$userId = 1; // TODO: sustituir por el ID de usuario en sesión
-$stmt = $mysqli->prepare("UPDATE users SET name=?, updated_at=NOW() WHERE id=?");
-$stmt->bind_param('si', $name, $userId);
-$ok = $stmt->execute(); $stmt->close();
+$in   = json_decode(file_get_contents('php://input'), true) ?? [];
+$csrf = $in['csrf'] ?? null;
+csrf_verify($csrf);
 
-json_out(['ok'=>$ok ? true : false, 'name'=>$name]);
+$name = trim((string)($in['name'] ?? ''));
+if (mb_strlen($name) < 2 || mb_strlen($name) > 100) {
+  json_out(['ok'=>false,'error'=>'El nombre debe tener 2–100 caracteres'], 400);
+}
+
+$ok = db_exec_nonquery(
+  "UPDATE users SET name=?, updated_at=? WHERE id=?",
+  'ssi', [$name, date('Y-m-d H:i:s'), $uid]
+)['ok'];
+
+json_out(['ok'=>$ok], $ok?200:500);
